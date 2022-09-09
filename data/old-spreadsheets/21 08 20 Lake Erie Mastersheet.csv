@@ -1,0 +1,47 @@
+﻿ID,Sampling day,Species code,Incub. Container,Vol. pre-filtered water (L),# indiv.,Incub. Start time (24h),Incub. End time (24h),Time elapsed (min),Incub. Temperature,Weight (g),Notes
+100,SD1,WP,4L WP,3,1,20.10,20.40,30,26.7,190,± 5g for the weight due to the wind
+101,SD1,WP,4L WP,3,1,20.15,20.45,30,26.7,150,± 5g for the weight due to the wind
+102,SD1,WP,4L WP,3,1,20.17,20.48,31,26.7,166,± 5g for the weight due to the wind. Fish upside down after incubation
+103,SD1,WP,4L WP,3,1,20.18,20.49,31,26.7,104,± 5g for the weight due to the wind
+104,SD1,WP,4L WP,2,1,20.20,20.51,31,26.7,90,± 5g for the weight due to the wind
+105,SD1,WP,4L WP,2,1,20.22,20.52,30,26.7,57,± 5g for the weight due to the wind
+107,SD2,YB,4L WP,5,1,10.20,10.42,22,26,636,± 5g for the weight due to the wind
+108,SD2,GF,4L WP,5,1,10.22,10.43,21,26,605,± 5g for the weight due to the wind
+109,SD2,GF,4L WP,5,1,10.23,10.44,21,26,927,± 5g for the weight due to the wind
+110,SD2,GF,4L WP,5,1,10.26,10.46,20,26,633,± 5g for the weight due to the wind
+111,SD2,YB,4L WP,4,1,10.28,10.58,30,26,341,± 5g for the weight due to the wind
+112,SD2,YB,4L WP,5,1,10.30,11.00,30,26,582,± 5g for the weight due to the wind
+113,SD2,YB,4L WP,5,1,10.33,11.03,30,26,444,± 5g for the weight due to the wind. Fish removed from the bag after 20min then out back for another 10min (took it out sooner than was supposed to)
+114,SD2,YB,4L WP,5,1,10.36,11.06,30,26,483,± 5g for the weight due to the wind
+115,SD2,YB,4L WP,5,1,10.38,11.08,30,26,504,± 5g for the weight due to the wind
+116,SD2,LB,4L WP,5,1,11.19,11.49,30,26,557,± 5g for the weight due to the wind
+117,SD2,LB,4L WP,5,1,11.21,11.51,30,26,392,± 5g for the weight due to the wind
+118,SD2,YB,4L WP,5,1,11.24,11.54,30,26,673,± 5g for the weight due to the wind. Fish double bagged because spikes pierce holes in the first bag to make sure no water is leaking outside the bags
+119,SD2,YB,4L WP,5,1,11.26,11.56,30,26,408,± 5g for the weight due to the wind. Fish double bagged because spikes pierce holes in the first bag to make sure no water is leaking outside the bags
+120,SD2,WE,4L WP,6,1,11.29,11.59,30,26,723,± 5g for the weight due to the wind
+121,SD2,LB,4L WP,6,1,11.32,12.02,30,26,726,± 5g for the weight due to the wind
+122,SD2,GF,4L WP,6,1,11.34,12.04,30,26,1070,± 5g for the weight due to the wind
+123,SD2,CTL1,4L WP,5,0,11.40,12.10,30,26,NA,± 5g for the weight due to the wind
+124,SD2,CTL2,4L WP,4,0,11.43,12.10,27,26,NA,± 5g for the weight due to the wind
+125,SD3,WP,4L WP,2,1,12.25,13.04,39,25,40,± 5g for the weight due to the wind. Fish was upside down during the incubation due to bag floating in the water and not leaving enough water for the fish to stand
+126,SD3,QM,0.5L WP,0.3,10,12.34,13.42,68,25,NA,± 5g for the weight due to the wind
+127,SD3,QM,0.5L WP,0.3,10,12.39,14.08,89,25,NA,± 5g for the weight due to the wind
+128,SD3,QM,0.5L WP,0.3,10,12.47,14.15,88,25,NA,± 5g for the weight due to the wind. 1 mussel looking dead as shell broken up 
+129,SD3,CTL3,0.5L WP,0.3,0,12.47,13.47,90,25,NA,± 5g for the weight due to the wind
+130,SD3,YP,4L WP,3,1,12.56,13.32,36,25,48,± 5g for the weight due to the wind
+131,SD3,CTL4,4L WP,2,0,12.56,12.56,30,25,NA,± 5g for the weight due to the wind
+132,SD4,WP,1L WP,0.5,1,11.01,11.34,33,23.3,41,± 5g for the weight due to the wind. Fish upside down in the bag
+133,SD4,WP,1L WP,0.7,1,11.03,11.36,33,23.3,56,± 5g for the weight due to the wind
+134,SD4,GS,4L WP,6,1,11.08,11.38,30,23.3,524,± 5g for the weight due to the wind. Fish upside down in the bag
+135,SD4,GS,4L WP,6,1,11.12,11.46,34,23.3,614,± 5g for the weight due to the wind
+136,SD4,GS,4L WP,5,1,11.16,11.49,33,23.3,216,± 5g for the weight due to the wind
+137,SD4,GS,4L WP,4,1,11.18,11.50,32,23.3,154,± 5g for the weight due to the wind
+138,SD4,WP,1L WP,0.5,1,11.27,11.57,30,23.3,41,± 5g for the weight due to the wind
+139,SD4,WP,4L WP,3,2,11.21,11.51,30,23.3,149,± 5g for the weight due to the wind. Fish upside down in the bag
+140,SD4,WE,4L WP,2,2,11.23,11.54,31,23.3,50,± 5g for the weight due to the wind
+141,SD4,QM,QM,0.2,6,11.42,13.40,118,23.3,NA,± 5g for the weight due to the wind
+142,SD4,CTL5,0.5L WP,0.2,0,11.54,13.25,91,23.3,NA,± 5g for the weight due to the wind
+143,SD4,QM,0.5L WP,0.2,5,11.55,13.34,99,23.3,NA,± 5g for the weight due to the wind
+144,SD4,QM,0.5L WP,0.2,5,11.58,13.30,92,23.3,NA,± 5g for the weight due to the wind
+145,SD4,QM,0.5L WP,0.2,9,12.04,13.34,90,23.3,NA,± 5g for the weight due to the wind
+146,SD4,CTL6,4L WP,6,0,12.07,13.25,88,23.3,NA,± 5g for the weight due to the wind
