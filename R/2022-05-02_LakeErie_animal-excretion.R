@@ -143,7 +143,7 @@
   results.spdf # Here are all of your results in one data.frame. You can use "left_join" to join it to another data.frame if you want to further down in the code.
   excr <- left_join(excr, results.spdf, by = "Species.code")
   
-  # ..do mass-corrected excretion rates calculations ----
+  # ..do mass-normalized excretion rates calculations ----
   excr <- excr %>% mutate(massnorm.P.excr = 
                             ifelse(Species.code != "QM",
                                    P.excretion.rate/(Mass^verts.Pcoeff),
@@ -229,7 +229,7 @@
   NexcrSp.p
   
   # ..N excretion vs d15N ----
-  Nexcr15N.p <- ggplot(excr.sp,
+  Nexcr15N.p <- ggplot(excr.sp %>% filter(Log10.massnorm.N.excr.sp < 2.5),
                       aes(x = d15N.sp, y = Log10.massnorm.N.excr.sp)) +
     geom_point(size = 4, aes(color = Season.bin,
                                          shape = Species.code)) +
@@ -254,7 +254,7 @@
   Nexcr15N.p
   
   # ..N excretion vs d13C ----
-  Nexcr13C.p <- ggplot(excr.sp,
+  Nexcr13C.p <- ggplot(excr.sp %>% filter(Log10.massnorm.N.excr.sp < 2.5),
                        aes(x = d13C.sp, y = Log10.massnorm.N.excr.sp)) +
     geom_point(size = 4, aes(color = Season.bin,
                                          shape = Species.code)) +
@@ -313,7 +313,7 @@
   PexcrSp.p
   
   # ..P excretion vs d15N ----
-  Pexcr15N.p <- ggplot(excr.sp,
+  Pexcr15N.p <- ggplot(excr.sp %>% filter(Log10.massnorm.N.excr.sp < 2.5),
                       aes(x = d15N.sp, y = Log10.massnorm.P.excr.sp)) +
     geom_point(size = 4, aes(color = Season.bin,
                                          shape = Species.code)) +
@@ -337,7 +337,7 @@
   Pexcr15N.p
   
   # ..P excretion vs d13C ----
-  Pexcr13C.p <- ggplot(excr.sp,
+  Pexcr13C.p <- ggplot(excr.sp %>% filter(Log10.massnorm.N.excr.sp < 2.5),
                        aes(x = d13C.sp, y = Log10.massnorm.P.excr.sp)) +
     geom_point(size = 4,  aes(color = Season.bin,
                                          shape = Species.code)) +
