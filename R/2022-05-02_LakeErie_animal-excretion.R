@@ -165,7 +165,8 @@
               d15N.sp = mean(d15N, na.rm = T),
               Log10.massnorm.N.excr.sp = log10(massnorm.N.excr.sp),
               Log10.massnorm.P.excr.sp = log10(massnorm.P.excr.sp),
-              Log10.massnorm.NP.excr.sp = log10(massnorm.NP.excr.sp))
+              Log10.massnorm.NP.excr.sp = log10(massnorm.NP.excr.sp)) %>% 
+    filter(!is.na(d15N.sp))
   
   excr.yr <- excr %>% group_by(Species.code) %>% 
     summarise(massnorm.N.excr.sp = mean(massnorm.N.excr, na.rm = T),
@@ -176,10 +177,16 @@
               Log10.massnorm.NP.excr.sp = log10(massnorm.NP.excr.sp)) %>% 
     left_join(biomass, by = 'Species.code') %>% 
     filter(!is.na(Biomass)) %>% 
-    mutate(Pop.N.excr = massnorm.N.excr.sp*Biomass,
-           Pop.P.excr = massnorm.P.excr.sp*Biomass,
-           pourc.Pop.N.excr = Pop.N.excr/(sum(Pop.N.excr))*100,
-           pourc.Pop.P.excr = Pop.P.excr/(sum(Pop.P.excr))*100)
+    mutate(Pop.N.excr.sp = massnorm.N.excr.sp*Biomass,
+           Pop.P.excr.sp = massnorm.P.excr.sp*Biomass,
+           Log10.Pop.N.excr.sp = log10(Pop.N.excr.sp),
+           Log10.Pop.P.excr.sp = log10(Pop.P.excr.sp))
+  
+  # TotPop.Nexcr.2016 <- excr.yr %>% filter(Year == 2016) %>%
+  #   sum(Pop.N.excr.sp)
+  # 
+  #  excr.yr <- excr.yr %>% mutate(pourc.Pop.N.excr = Pop.N.excr/(sum(Pop.N.excr))*100,
+  #                                pourc.Pop.P.excr = Pop.P.excr/(sum(Pop.P.excr))*100)
               
               
   ########## PLOT #######
@@ -224,13 +231,16 @@
   # ..N excretion vs d15N ----
   Nexcr15N.p <- ggplot(excr.sp,
                       aes(x = d15N.sp, y = Log10.massnorm.N.excr.sp)) +
-    geom_point(size = 4, alpha = .5, aes(color = Season.bin)) +
+    geom_point(size = 4, aes(color = Season.bin,
+                                         shape = Species.code)) +
     labs(x = '',
          y = expression(atop(Log[10]~mass-corrected, 
                              paste(N~excretion~(μg~N/g/h))))) +
     scale_colour_manual(name = 'Season',
                         labels = c("Summer", "Fall"),
                         values = c("goldenrod2", "#D16103")) +
+    scale_shape_manual(name = 'Species',
+                       values = c(3, 7, 15, 9, 8, 17, 19)) +
     theme_classic(base_size = 26) +
     theme(axis.text = element_text(face = 'bold'),
           axis.line = element_line(size = 1),
@@ -240,18 +250,21 @@
           legend.margin = margin(.15, .15, .15, .15, 'cm'),
           legend.key.height = unit(2, 'lines'),
           legend.key.width = unit(3, 'lines'),
-          legend.position = 'none')
+          legend.position = 'right')
   Nexcr15N.p
   
   # ..N excretion vs d13C ----
   Nexcr13C.p <- ggplot(excr.sp,
                        aes(x = d13C.sp, y = Log10.massnorm.N.excr.sp)) +
-    geom_point(size = 4, alpha = .5, aes(color = Season.bin)) +
+    geom_point(size = 4, aes(color = Season.bin,
+                                         shape = Species.code)) +
     labs(x = '',
          y = '') +
     scale_colour_manual(name = 'Season',
                         labels = c("Summer", "Fall"),
                         values = c("goldenrod2", "#D16103")) +
+    scale_shape_manual(name = 'Species',
+                       values = c(3, 7, 15, 9, 8, 17, 19)) +
     theme_classic(base_size = 26) +
     theme(axis.text = element_text(face = 'bold'),
           axis.line = element_line(size = 1),
@@ -302,7 +315,8 @@
   # ..P excretion vs d15N ----
   Pexcr15N.p <- ggplot(excr.sp,
                       aes(x = d15N.sp, y = Log10.massnorm.P.excr.sp)) +
-    geom_point(size = 4, alpha = .5, aes(color = Season.bin)) +
+    geom_point(size = 4, aes(color = Season.bin,
+                                         shape = Species.code)) +
     labs(x = expression(δ^15~'N (‰)'),
          y = expression(atop(Log[10]~mass-corrected, 
                              paste(P~excretion~(μg~P/g/h))))) +
@@ -310,6 +324,8 @@
     scale_colour_manual(name = 'Season',
                         labels = c("Summer", "Fall"),
                         values = c("goldenrod2", "#D16103")) +
+    scale_shape_manual(name = 'Species',
+                       values = c(3, 7, 15, 9, 8, 17, 19)) +
     theme(axis.text = element_text(face = 'bold'),
           axis.line = element_line(size = 1),
           panel.grid = element_blank(),
@@ -317,19 +333,22 @@
           legend.margin = margin(.15, .15, .15, .15, 'cm'),
           legend.key.height = unit(2, 'lines'),
           legend.key.width = unit(3, 'lines'),
-          legend.position = 'none')
+          legend.position = 'right')
   Pexcr15N.p
   
   # ..P excretion vs d13C ----
   Pexcr13C.p <- ggplot(excr.sp,
                        aes(x = d13C.sp, y = Log10.massnorm.P.excr.sp)) +
-    geom_point(size = 4, alpha = .5, aes(color = Season.bin)) +
+    geom_point(size = 4,  aes(color = Season.bin,
+                                         shape = Species.code)) +
     labs(x = expression(δ^13~'C (‰)'),
          y = '') +
     theme_classic(base_size = 26) +
     scale_colour_manual(name = 'Season',
                         labels = c("Summer", "Fall"),
                         values = c("goldenrod2", "#D16103")) +
+    scale_shape_manual(name = 'Species',
+                       values = c(3, 7, 15, 9, 8, 17, 19)) +
     theme(axis.text = element_text(face = 'bold'),
           axis.line = element_line(size = 1),
           panel.grid = element_blank(),
@@ -338,7 +357,7 @@
           legend.margin = margin(.15, .15, .15, .15, 'cm'),
           legend.key.height = unit(2, 'lines'),
           legend.key.width = unit(3, 'lines'),
-          legend.position = 'none')
+          legend.position = 'right')
   Pexcr13C.p
   
   # combine plots ----
@@ -354,10 +373,10 @@
             nrow = 2, ncol = 2,
             heights = c(1,1),
             labels = c("(a)", "(b)", "(c)", "(d)"),
-            font.label = list(size = 26), 
-            label.x = 0.2, label.y = 1, common.legend = F, 
+            font.label = list(size = 26), legend = 'right',
+            label.x = 0.25, label.y = 1, common.legend = T, 
             align = 'hv')
-  ggsave('figures/preliminary-figures/N_P_excretion_SI.png', 
+  ggsave('figures/preliminary-figures/N_P_excretion_SI_species_av.png', 
          width = 20, height = 14, 
          units = 'in', dpi = 600)
   
@@ -426,14 +445,112 @@
          units = 'in', dpi = 600)
   
   # Population excretion rate ----
-  # Pop N excretion vs year
-  PopNexcr.pourc.p <- ggplot(excr.yr,
-                             aes(x = Year, y = pourc.Pop.N.excr,
-                                 fill = Species.code)) + 
-    geom_bar(stat = 'identity') #+
-    # geom_text(aes(label = pourc.Pop.N.excr), 
-    #           vjust = 1.6, color = "white", size = 3.5)
-  PopNexcr.pourc.p 
+  Species.pop <- c('Gizzard shad', 'Logperch', 'Round goby', 
+                   'White perch','Yellow perch')
+  
+  # ..Pop N excretion vs year ----
+  PopNexcr.yr.p <- ggplot(excr.yr,
+                             aes(x = Year, y = Log10.Pop.N.excr.sp,
+                                 color = Species.code)) + 
+    geom_point(size = 3) +
+    geom_line(size = 1) +
+    labs(x = '',
+         y = expression(atop(Log[10]~Population, 
+                             paste(N~excretion~(μg~P/kg/ha))))) +
+    theme_classic(base_size = 26) +
+    scale_color_brewer(palette = "Set1",
+                       name = 'Species',
+                       labels = Species.pop) +
+    theme(axis.text = element_text(face = 'bold'),
+          axis.line = element_line(size = 1),
+          panel.grid = element_blank(),
+          legend.title = element_text(face = 'bold'),
+          legend.margin = margin(.15, .15, .15, .15, 'cm'),
+          legend.key.height = unit(2, 'lines'),
+          legend.key.width = unit(3, 'lines'),
+          legend.position = 'right')
+  PopNexcr.yr.p 
+  
+  # ..Pop P excretion vs year ----
+  PopPexcr.yr.p <- ggplot(excr.yr,
+                          aes(x = Year, y = Log10.Pop.P.excr.sp,
+                              color = Species.code)) + 
+    geom_point(size = 3) +
+    geom_line(size = 1) +
+    labs(x = '',
+         y = expression(atop(Log[10]~Population, 
+                             paste(P~excretion~(μg~P/kg/ha))))) +
+    theme_classic(base_size = 26) +
+    scale_color_brewer(palette = "Set1",
+                       name = 'Species',
+                       labels = Species.pop) +
+    theme(axis.text = element_text(face = 'bold'),
+          axis.line = element_line(size = 1),
+          panel.grid = element_blank(),
+          legend.title = element_text(face = 'bold'),
+          legend.margin = margin(.15, .15, .15, .15, 'cm'),
+          legend.key.height = unit(2, 'lines'),
+          legend.key.width = unit(3, 'lines'),
+          legend.position = 'right')
+  PopPexcr.yr.p 
+  
+  # combine plots ----
+  ggarrange(PopNexcr.yr.p, PopPexcr.yr.p, nrow = 2, heights = c(1,1),
+            labels = c("(a)", "(b)"),
+            font.label = list(size = 26), label.x = 0.12, label.y = 1,
+            legend = 'right', align = 'v', common.legend = T)
+  ggsave('figures/preliminary-figures/Pop_N_Pexcretion_year.png', 
+         width = 16, height = 14, 
+         units = 'in', dpi = 600)
+  
+  # ..Pop N excretion vs year ----
+  PopNexcr.yr.p <- ggplot(excr.yr,
+                          aes(x = Year, y = Log10.Pop.N.excr.sp,
+                              color = Species.code)) + 
+    geom_point(size = 3) +
+    geom_line(size = 1) +
+    labs(x = '',
+         y = expression(atop(Log[10]~Population, 
+                             paste(N~excretion~(μg~P/kg/ha))))) +
+    theme_classic(base_size = 26) +
+    # scale_x_discrete(labels = c("Summer", "Fall")) +
+    # scale_colour_manual(values = c("goldenrod2", "#D16103")) +
+    # scale_fill_manual(values = c("goldenrod2", "#D16103")) +
+    scale_color_brewer(palette = "Set1",
+                       name = 'Species',
+                       labels = Species.pop) +
+    theme(axis.text = element_text(face = 'bold'),
+          axis.line = element_line(size = 1),
+          panel.grid = element_blank(),
+          legend.title = element_text(face = 'bold'),
+          legend.margin = margin(.15, .15, .15, .15, 'cm'),
+          legend.key.height = unit(2, 'lines'),
+          legend.key.width = unit(3, 'lines'),
+          legend.position = 'right')
+  PopNexcr.yr.p 
+  
+  # Pop P excretion vs year
+  PopPexcr.yr.p <- ggplot(excr.yr,
+                          aes(x = Year, y = Log10.Pop.P.excr.sp,
+                              color = Species.code)) + 
+    geom_point(size = 3) +
+    geom_line(size = 1) +
+    labs(x = '',
+         y = expression(atop(Log[10]~Population, 
+                             paste(P~excretion~(μg~P/kg/ha))))) +
+    theme_classic(base_size = 26) +
+    # scale_x_discrete(labels = c("Summer", "Fall")) +
+    # scale_colour_manual(values = c("goldenrod2", "#D16103")) +
+    # scale_fill_manual(values = c("goldenrod2", "#D16103")) +
+    theme(axis.text = element_text(face = 'bold'),
+          axis.line = element_line(size = 1),
+          panel.grid = element_blank(),
+          legend.title = element_text(face = 'bold'),
+          legend.margin = margin(.15, .15, .15, .15, 'cm'),
+          legend.key.height = unit(2, 'lines'),
+          legend.key.width = unit(3, 'lines'),
+          legend.position = 'right')
+  PopPexcr.yr.p 
   
   # ..GLM ----
   # N excretion vs d15N
