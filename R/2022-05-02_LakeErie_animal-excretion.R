@@ -17,6 +17,9 @@
   er <- read.csv('data/2022-03-03_LakeErie_Mastersheet.csv',
                  stringsAsFactors = F, na.strings = c("", "NA", "."), 
                  strip.white = TRUE, sep = ",")
+  bms <- read.csv('data/2022-03-03_LakeErie_Biomass-estimates.csv',
+                      stringsAsFactors = F, na.strings = c("", "NA", "."), 
+                      strip.white = TRUE, sep = ",")
   
   str(er) 
   head(er)
@@ -36,12 +39,16 @@
            Season.bin = if_else(Season == 'S', "1", "2")) %>%  
     filter(!is.na(Log10.P.excretion.rate),
            !is.na(Log10.N.excretion.rate),
-           Species.code != "CTL1", 
+           Species.code != "CTL1",
            Species.code != "CTL2",
-           Species.code != "CTL3", 
+           Species.code != "CTL3",
            Species.code != "CTL4",
-           Species.code != "CTL5", 
+           Species.code != "CTL5",
            Species.code != "CTL6")
+  
+  biomass <- bms %>% 
+    rename(Species.code = ï..Species.code,
+           Biomass = Biomass..kg.ha.)
   
   # plot log10 P excretion rate vs log10 mass ----
   # vert
@@ -80,7 +87,7 @@
   inverts.Pm <- lm(Log10.P.excretion.rate ~ Log10.mass, 
                   data = excr %>% filter(Species.code == 'QM',
                                          Log10.P.excretion.rate < -0.6))
-  inverts.Pcoeff <- inverts.m$coefficients["Log10.mass"]
+  inverts.Pcoeff <- inverts.Pm$coefficients["Log10.mass"]
   inverts.Nm <- lm(Log10.N.excretion.rate ~ Log10.mass, 
                    data = excr %>% filter(Species.code == 'QM',
                                           Log10.P.excretion.rate < -0.6))
@@ -145,9 +152,38 @@
                             ifelse(Species.code != "QM",
                                    N.excretion.rate/(Mass^verts.Ncoeff),
                                    N.excretion.rate/Mass),
+                          massnorm.NP.excr = (massnorm.N.excr/massnorm.P.excr)/(31/14),
                           Log10.massnorm.N.excr = log10(massnorm.N.excr),
                           Log10.massnorm.P.excr = log10(massnorm.P.excr))
-  # plot ----
+  
+  # ..make excr dataset with one entry for each excretion average ----
+  excr.sp <- excr %>% group_by(Season.bin, Species.code) %>% 
+    summarise(massnorm.N.excr.sp = mean(massnorm.N.excr, na.rm = T),
+              massnorm.P.excr.sp = mean(massnorm.P.excr, na.rm = T),
+              massnorm.NP.excr.sp = mean(massnorm.NP.excr, na.rm = T),
+              d13C.sp = mean(d13C, na.rm = T),
+              d15N.sp = mean(d15N, na.rm = T),
+              Log10.massnorm.N.excr.sp = log10(massnorm.N.excr.sp),
+              Log10.massnorm.P.excr.sp = log10(massnorm.P.excr.sp),
+              Log10.massnorm.NP.excr.sp = log10(massnorm.NP.excr.sp))
+  
+  excr.yr <- excr %>% group_by(Species.code) %>% 
+    summarise(massnorm.N.excr.sp = mean(massnorm.N.excr, na.rm = T),
+              massnorm.P.excr.sp = mean(massnorm.P.excr, na.rm = T),
+              massnorm.NP.excr.sp = mean(massnorm.NP.excr, na.rm = T),
+              Log10.massnorm.N.excr.sp = log10(massnorm.N.excr.sp),
+              Log10.massnorm.P.excr.sp = log10(massnorm.P.excr.sp),
+              Log10.massnorm.NP.excr.sp = log10(massnorm.NP.excr.sp)) %>% 
+    left_join(biomass, by = 'Species.code') %>% 
+    filter(!is.na(Biomass)) %>% 
+    mutate(Pop.N.excr = massnorm.N.excr.sp*Biomass,
+           Pop.P.excr = massnorm.P.excr.sp*Biomass,
+           pourc.Pop.N.excr = Pop.N.excr/(sum(Pop.N.excr))*100,
+           pourc.Pop.P.excr = Pop.P.excr/(sum(Pop.P.excr))*100)
+              
+              
+  ########## PLOT #######
+  # Individual excretion rate ----
   species <- c('Brown Bullhead', 'Goldfish', 'Gizzard shad', 'Largemouth bass', 
                'Logperch', 'Northern Pike', 'Quagga mussel', 'Round goby', 
                'Walleye', 'White perch', 'Yellow bullhead', 'Yellow perch')
@@ -186,12 +222,15 @@
   NexcrSp.p
   
   # ..N excretion vs d15N ----
-  Nexcr15N.p <- ggplot(excr %>%  filter(Season.bin == 2),
-                      aes(x = d15N, y = Log10.massnorm.N.excr)) +
-    geom_point(size = 4, alpha = .5, color = "#D16103") +
+  Nexcr15N.p <- ggplot(excr.sp,
+                      aes(x = d15N.sp, y = Log10.massnorm.N.excr.sp)) +
+    geom_point(size = 4, alpha = .5, aes(color = Season.bin)) +
     labs(x = '',
          y = expression(atop(Log[10]~mass-corrected, 
                              paste(N~excretion~(μg~N/g/h))))) +
+    scale_colour_manual(name = 'Season',
+                        labels = c("Summer", "Fall"),
+                        values = c("goldenrod2", "#D16103")) +
     theme_classic(base_size = 26) +
     theme(axis.text = element_text(face = 'bold'),
           axis.line = element_line(size = 1),
@@ -205,11 +244,14 @@
   Nexcr15N.p
   
   # ..N excretion vs d13C ----
-  Nexcr13C.p <- ggplot(excr %>%  filter(Season.bin == 2),
-                       aes(x = d13C, y = Log10.massnorm.N.excr)) +
-    geom_point(size = 4, alpha = .5, color = "#D16103") +
+  Nexcr13C.p <- ggplot(excr.sp,
+                       aes(x = d13C.sp, y = Log10.massnorm.N.excr.sp)) +
+    geom_point(size = 4, alpha = .5, aes(color = Season.bin)) +
     labs(x = '',
          y = '') +
+    scale_colour_manual(name = 'Season',
+                        labels = c("Summer", "Fall"),
+                        values = c("goldenrod2", "#D16103")) +
     theme_classic(base_size = 26) +
     theme(axis.text = element_text(face = 'bold'),
           axis.line = element_line(size = 1),
@@ -258,13 +300,16 @@
   PexcrSp.p
   
   # ..P excretion vs d15N ----
-  Pexcr15N.p <- ggplot(excr %>%  filter(Season.bin == 2),
-                      aes(x = d15N, y = Log10.massnorm.P.excr)) +
-    geom_point(size = 4, alpha = .5, color = "#D16103") +
+  Pexcr15N.p <- ggplot(excr.sp,
+                      aes(x = d15N.sp, y = Log10.massnorm.P.excr.sp)) +
+    geom_point(size = 4, alpha = .5, aes(color = Season.bin)) +
     labs(x = expression(δ^15~'N (‰)'),
          y = expression(atop(Log[10]~mass-corrected, 
                              paste(P~excretion~(μg~P/g/h))))) +
     theme_classic(base_size = 26) +
+    scale_colour_manual(name = 'Season',
+                        labels = c("Summer", "Fall"),
+                        values = c("goldenrod2", "#D16103")) +
     theme(axis.text = element_text(face = 'bold'),
           axis.line = element_line(size = 1),
           panel.grid = element_blank(),
@@ -276,12 +321,15 @@
   Pexcr15N.p
   
   # ..P excretion vs d13C ----
-  Pexcr13C.p <- ggplot(excr %>%  filter(Season.bin == 2),
-                       aes(x = d13C, y = Log10.massnorm.P.excr)) +
-    geom_point(size = 4, alpha = .5, color = "#D16103") +
+  Pexcr13C.p <- ggplot(excr.sp,
+                       aes(x = d13C.sp, y = Log10.massnorm.P.excr.sp)) +
+    geom_point(size = 4, alpha = .5, aes(color = Season.bin)) +
     labs(x = expression(δ^13~'C (‰)'),
          y = '') +
     theme_classic(base_size = 26) +
+    scale_colour_manual(name = 'Season',
+                        labels = c("Summer", "Fall"),
+                        values = c("goldenrod2", "#D16103")) +
     theme(axis.text = element_text(face = 'bold'),
           axis.line = element_line(size = 1),
           panel.grid = element_blank(),
@@ -376,6 +424,16 @@
   ggsave('figures/preliminary-figures/N_Pexcretion_season.png', 
          width = 16, height = 14, 
          units = 'in', dpi = 600)
+  
+  # Population excretion rate ----
+  # Pop N excretion vs year
+  PopNexcr.pourc.p <- ggplot(excr.yr,
+                             aes(x = Year, y = pourc.Pop.N.excr,
+                                 fill = Species.code)) + 
+    geom_bar(stat = 'identity') #+
+    # geom_text(aes(label = pourc.Pop.N.excr), 
+    #           vjust = 1.6, color = "white", size = 3.5)
+  PopNexcr.pourc.p 
   
   # ..GLM ----
   # N excretion vs d15N
