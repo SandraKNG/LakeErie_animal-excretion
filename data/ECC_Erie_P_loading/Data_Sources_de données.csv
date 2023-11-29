@@ -1,0 +1,21 @@
+Data Type(s),Source Agency,Division,Hyperlink (Email Contact)
+Tributary Discharge,Environment and Climate Change Canada,Water Survey Canada-HYDAT,https://wateroffice.ec.gc.ca/
+,Grand River Conservation Authority,GRCA,https://data.grandriver.ca/
+Tributary Water Quality,Environment and Climate Change Canada,Water Quality Monitoring and Surveillance Division,https://open.canada.ca/data/en/dataset/fe93165b-a7f9-48a4-af59-4255360272a0
+,"Ontario Ministry of Environment, Conservation and Parks",PWQMN,https://www.ontario.ca/data/provincial-stream-water-quality-monitoring-network
+Point Source Data,"Ontario Ministry of Environment, Conservation and Parks",MISA,https://www.ontario.ca/data/industrial-wastewater-discharges
+Atmospheric Deposition,Environment and Climate Change Canada,Water Quality Monitoring and Surveillance Division, Currently by request to: wqms-info@canada.ca
+,,,
+,,,
+Water quality and discharge stations used in deriving TP loadings,,,
+Tributary,Water Quality Station,Discharge Station,
+Big Creek,PWQMN 16012401102,WSC 02GC007,
+Big Otter Creek,PWQMN 16010900802 & WQMS ON02GC1300,WSC02GC026,
+Canard River,PWQMN 10000200202,WSC 02GH003,
+Grand River-ON,PWQMN 16018409202 & WQMS ON02GC1600,ONO2GC1600 ,
+Kettle Creek,PWQMN 16008701002 & WQMS ON02GC1500,WSC 02GC002,
+Lynn River,PWQMN 16015900302 & WQMS ON02GC1100,WSC 02GC008,
+Nanticoke Creek,PWQMN 16016400102 & WQMS ON02GC1000,WSC 02GC022,
+Sydenham River,PWQMN 04002701702  & WQMS ON02GG1000,WSC 02GG003,
+Thames River,PWQMN 04001305802  & WQMS ON02GE1000,WSC 02GE003,
+Turkey Creek,PWQMN 10000100302,WSC 02GH004,
