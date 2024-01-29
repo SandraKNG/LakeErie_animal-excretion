@@ -3,7 +3,11 @@ Estimations de la charge en phosphore total (PT) en tonnes métriques par année (
 Source,2008,2009,2010,2011,2012,2013,2014,2015,2016,2017,2018,2019,2020,2021
 Canada  ,,,,,,,,,,,,,,
 Monitored tributary/Affluent surveillé,685.007,912.027,323.573,1277.72,501.31,850.086,1361.999,636.34,421.924,765.222,994.478,1204.645,841.43,616.39
+<<<<<<< HEAD
 Unmonitored area/Zone non surveillée,383.243,640.473,179.299,979.12,413.929,660.618,841.774,446.799,321.151,541.921,785.6,1017.146,595.006,407.7
+=======
+Unmonitored area/Zone non surveillée,383.243,640.473,179.299,979.12,413.929,660.618,841.774,446.799,321.151,541.921,785.6,1017.146,595.006,407.70
+>>>>>>> 561e07aec1796006abeee7626848271440840a25
 Direct industrial point source/Source ponctuelle industrielle directe,22.147,11.943,13.957,17.06,17.22,20.01,16.502,15.256,16.669,15.823,14.88,14.792,14.8,16.47
 Direct municipal point source/Source ponctuelle municipale directe,54.341,49.255,41.978,46.525,37.22,36.963,36.423,30.237,34.137,34.767,34.642,34.642,38.706,53.22
 Indirect industrial point source/Source ponctuelle industrielle indirecte,0.007,0.547,0.546,0.545,0.546,0.545,0.545,0.545,0.546,0.009,0.009,0.009,0.009,0.01
@@ -22,5 +26,8 @@ Direct municipal point source/Source ponctuelle municipale directe,38.039,34.479
 Indirect industrial point source/Source ponctuelle industrielle indirecte,0.005,0.383,0.383,0.381,0.383,0.381,0.381,0.381,0.383,0.007,0.006,0.006,,0.004
 Indirect municipal point source/Source ponctuelle municipale indirecte,76.959,69.664,52.812,58.115,53.361,58.179,62.782,51.52,52.646,54.881,52.924,52.924,,66.159
 Total au Canada Total,296.938,649.075,154.302,621.436,206.756,476.809,633.705,417.506,157.613,267.331,425.354,674.615,,323.276
+<<<<<<< HEAD
 ,,,,,,,,,,,,,,
 Ratio of SRP to TP,0.259393853,0.402228298,0.276127536,0.267811285,0.213221076,0.304150026,0.280810724,0.369922499,0.198534793,0.196895119,0.232484696,0.297026935,0,0.295558522
+=======
+>>>>>>> 561e07aec1796006abeee7626848271440840a25

@@ -12,12 +12,36 @@
   library(rstatix)
   
   # check for outliers ----
+<<<<<<< HEAD
   ggboxplot(excr, "Season", "masscorr.N.excr", color = 'Species.code',
             palette = 'viridis') 
   outliers <- excr %>% 
     select(c(masscorr.N.excr, Season, Species.code)) %>% 
     group_by(Season) %>% 
     identify_outliers(masscorr.N.excr)
+=======
+  ggboxplot(excr, "Season", "massnorm.N.excr", color = 'Species.code',
+            palette = 'viridis') 
+  excr %>% 
+    select(c(massnorm.N.excr, Season, Species.code)) %>% 
+    group_by(Season) %>% 
+    identify_outliers(massnorm.N.excr)
+  
+  # normality check
+  # Build the linear model
+  model  <- lm(log10(massnorm.C.excr) ~ DOC.level, data = excr.aov)
+  # Create a QQ plot of residuals
+  ggqqplot(residuals(model))
+  
+  # Compute Shapiro-Wilk test of normality
+  shapiro_test(residuals(model))
+  
+  # QQ plot for each group level
+  ggqqplot(excr.aov, 'massnorm.C.excr', facet.by = 'DOC.level')
+  
+  # check homogeneity of variances
+  excr.aov %>% levene_test(massnorm.C.excr ~ DOC.level)
+>>>>>>> 561e07aec1796006abeee7626848271440840a25
   
   # Individual excretion rate ----
   species <- c('Brown Bullhead', 'Goldfish', 'Gizzard shad', 'Largemouth bass', 
