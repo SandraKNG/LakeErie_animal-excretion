@@ -7,21 +7,50 @@
   library(lindia) # to look at model diagnostics
   library(performance) # to compare models
   library(car) # for Anova() function
+  library(emmeans) # for posthoc
   library(lme4) # to add random effect to lm
   library(boot) # for boostrapping
   
   # ANOVA ----
   # ..Figure 1 - Season effect ----
-  aovN <- lm(log10(masscorr.N.excr) ~ Season * Species.code, data = excr)
-  Anova(aovN)
-  aovP <- lm(log10(masscorr.P.excr) ~ Season * Species.code, data = excr)
+  aovN.seas <- lm(log10(masscorr.N.excr) ~ Season * Species.code, data = excr)
+  Anova(aovN.seas)
+  aovP.seas <- lm(log10(masscorr.P.excr) ~ Season * Species.code, data = excr)
   Anova(aovP)
+  
+  # ..Figure 2 - Season effect ----
+  aovN.sp <- lm(log10(masscorr.N.excr) ~ Species.code, data = excr)
+  Anova(aovN.seas)
+  aovP.seas <- lm(log10(masscorr.P.excr) ~ Season * Species.code, data = excr)
+  Anova(aovP)
+  
+  # need posthoc for species
+  # LM & emmeans ----
+  emm <- function(lm){
+    # pairwise comparisons using emmeans
+    m1 <- emmeans(lm, pairwise ~ Species.code, type = 'response')
+    m2 <- emmeans(lm, pairwise ~ Species.code, type = 'response')
+    contrasts <- m1$contrasts %>% summary(infer = T) %>% 
+      as_tibble() %>%  arrange(p.value)
+    print(m2)
+    #print(contrasts, n = 40)
+    
+    # Extracting effects from emmeans
+    emm_df <- as_tibble(m1$emmeans)
+    
+    # Return a list containing the results
+    result_list <- list(contrasts = contrasts, 
+                        emmeans = emm_df)
+    return(result_list)
+  }
+  
+  pwcN <- emm(aovN.sp)
   
   # GLM ----
   # data distribution
   hist(excr$masscorr.N.excr)
   
-  # ..Figure 1 - Season effect ----
+  # ..Figure 2 - Season effect ----
   lmN.temp <- lmer(log10(masscorr.N.excr) ~ Temp + (1|Species.code), data = excr)
   lmN.temp2 <- lm(log10(masscorr.N.excr) ~ Temp, data = excr)
   check_model(lmN.temp)

@@ -165,6 +165,9 @@
     masscorr.NP.excr.t = (masscorr.N.excr.t / masscorr.P.excr.t) / (31 / 14)
   )
   
+  # make stable isotopes dataset
+  excr.SI <- excr %>% filter(d13C < 0)
+  
   # ..make excr dataset with one entry for each excretion average ----
   # for a seasonal dataset
   excr.seas <- excr %>% 
@@ -187,72 +190,97 @@
     reframe(
       across(
         ends_with('excr'),
-        \(x) mean(x, na.rm = TRUE),
-        .names = "{.col}.sp"
+        \(x) mean(x, na.rm = TRUE)
+      ),
+      n = n(),
+      across(
+        ends_with('excr.t'),
+        \(x) mean(x, na.rm = TRUE)
       ),
       n = n()
-    ) %>% 
+     ) %>% 
     left_join(biomass, by = 'Species.code') %>%
     mutate(
-      Pop.N.excr.sp = masscorr.N.excr.sp * Biomass * 10 ^ 3 / 10 ^ 4,
-      Pop.P.excr.sp = masscorr.P.excr.sp * Biomass * 10 ^ 3 / 10 ^ 4
-    ) %>% 
+      Biomass.g.m2 = Biomass * 10 ^ 3 / 10 ^ 4,
+      Pop.N.excr = masscorr.N.excr * Biomass.g.m2,
+      Pop.P.excr = masscorr.P.excr * Biomass.g.m2,
+      Pop.N.excr.t = masscorr.N.excr.t * Biomass.g.m2,
+      Pop.P.excr.t = masscorr.P.excr.t * Biomass.g.m2
+    ) %>%
     filter(!is.na(Biomass))
-  
-  biomass.2019 <- biomass %>% filter(Year == 2019)
-  
-  excr.yr.2019 <- excr %>% 
-    group_by(Species.code) %>% 
-    reframe(
-      across(
-        ends_with('excr'),
-        \(x) mean(x, na.rm = TRUE),
-        .names = "{.col}.sp"
-      ),
-      n = n()
-    ) %>% 
-    left_join(biomass.2019, by = 'Species.code') %>%
-    mutate(
-      Pop.N.excr.sp = masscorr.N.excr.sp * Biomass * 10 ^ 3 / 10 ^ 4,
-      Pop.P.excr.sp = masscorr.P.excr.sp * Biomass * 10 ^ 3 / 10 ^ 4
-    )
-  
-  excr.sp.smry <- excr.yr.2019 %>%  filter(Year == 2019,
-                                      Species.code != 'DM') %>% 
-    summarise(Agg.N.excr.sp = sum(Pop.N.excr.sp, na.rm = TRUE),
-              Agg.P.excr.sp = sum(Pop.P.excr.sp, na.rm = TRUE))
 
   # make volumetric excretion dataset
-  # convert Lake Erie water retention time from yr to h (x 8760h)
+  # convert Lake Erie water retention time from yr to h (x 24h x 325d = 8760h)
   # convert Lake Erie surface area from km2 to m2 (x 10^6)
   # convert Lake Erie water volume in km3 to L (x 10^12)
-  # for excretion load, convert ug/m2/h to metric tonne per annum
+  # for excretion load, convert ug/m2/h to metric ton per annum
   wat.ret.time.h <- 2.6 * 8760
   Area <- 25700 * 10^6
   lake.vol.L <- 480 * 10^12
-  excr.vol <- excr %>%
-    reframe(across(c(
-      'Mass', 'AmTDN', 'AmTDP','masscorr.N.excr', 'massnorm.P.excr'),
-      ~mean(., na.rm = TRUE)
-    )) %>% 
-    cross_join(excr.sp.smry) %>% 
+  
+  excr.vol <- excr.yr %>%  filter(Year == 2021, Species.code != 'DM') %>%
+    reframe(
+      Agg.N.excr.t = sum(Pop.N.excr.t, na.rm = TRUE),
+      Agg.P.excr.t = sum(Pop.P.excr.t, na.rm = TRUE)
+    ) %>%  
     mutate(
-      vol.Nexcr = Agg.N.excr.sp * Area * wat.ret.time.h/lake.vol.L,
-      vol.Pexcr = Agg.P.excr.sp * Area * wat.ret.time.h/lake.vol.L,
-      Nexcr.load = Agg.N.excr.sp * 8760 * Area / 10 ^ 12,
-      Pexcr.load = Agg.P.excr.sp * 8760 * Area / 10 ^ 12,
+      volN = Agg.N.excr.t * Area * wat.ret.time.h/lake.vol.L,
+      volP = Agg.P.excr.t * Area * wat.ret.time.h/lake.vol.L,
+      Source = 'Fish'
     )
   
-  # CHECK how to go from /hr to /yr
-  excr.DM <- excr.yr %>% filter(Species.code == 'DM') 
-  DM.Nflux <- excr.DM$Pop.N.excr.sp * 8760 * Area * 10^-15
-  DM.Pflux <- excr.DM$Pop.P.excr.sp * 8760 * Area * 10^-15
+  ambient.vol <- excr %>%
+    reframe(
+      volN = mean(AmTDN, na.rm = T),
+      volP = mean(AmTDP, na.rm = T)
+    ) %>% 
+    mutate(
+      Source = 'TD'
+    )
   
-  # Pop N excr for mussel in my study = 31 130 ug/m2/h
+  excr.vol <- excr.vol %>% 
+    bind_rows(ambient.vol)
+  
+  # combine load estimates
+  excr.load <- excr.yr %>%  filter(Year == 2019, Species.code != 'DM') %>%
+    reframe(
+      Agg.N.excr = sum(Pop.N.excr, na.rm = TRUE),
+      Agg.P.excr = sum(Pop.P.excr, na.rm = TRUE)
+    ) %>% 
+    mutate(
+    Nload = Agg.N.excr * 8760 * Area / 10 ^ 12,
+    Pload = Agg.P.excr * 8760 * Area / 10 ^ 12,
+    Source = 'Fish'
+    )
+  
+  excr.DM.load <- excr.yr %>%  filter(Year == 2019, Species.code == 'DM') %>%
+    reframe(
+      Agg.N.excr = sum(Pop.N.excr, na.rm = TRUE),
+      Agg.P.excr = sum(Pop.P.excr, na.rm = TRUE),
+    ) %>% 
+    mutate(
+      Nload = Agg.N.excr * 8760 * Area / 10 ^ 12,
+      Pload = Agg.P.excr * 8760 * Area / 10 ^ 12,
+      Nflux = Agg.N.excr * 8760 * Area * 10^-15,
+      Pflux = Agg.P.excr * 8760 * Area * 10^-15,
+      Source = 'Dreissenid'
+    )
+  
+  # ambient load based on the tributary calc + 51% method (Maccoux et al. 2016)
+  ambient.load <- tibble(Pload = c(13544, 4577), 
+                         Source = c('TP', 'SRP'))
+  
+  excr.load <- excr.load %>% 
+    bind_rows(excr.DM.load) %>% 
+    bind_rows(ambient.load) #%>% 
+    #mutate(Source = c('TP', 'SRP', 'Fish', 'Dreissenid'))
+  
+  # Pop N excr for mussel in my study =  ug/m2/h
   # vs. excretion + egesta Li et al (2021) = 0.0468 - 9 mg/m2/d
   Li.Pflux <- mean(0.55, 1.87, 0.768, 0.698, 1.6, 9, 0.188, 0.0468)
   
-  Li.Pflux.conv <- Li.Pflux * 10^3 / 24
+  Li.Pflux.ugm2h <- Li.Pflux * 10^3 / 24
+  LiPflux.Ggyr <- Li.Pflux.ugm2h * 8760 * 10^(-15)
 
   # ..summary statistics ----
   excr.ss <- excr %>% 
