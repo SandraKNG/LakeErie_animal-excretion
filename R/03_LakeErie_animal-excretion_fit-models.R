@@ -8,14 +8,18 @@
   library(performance) # to compare models
   library(car) # for Anova() function
 <<<<<<< HEAD
+<<<<<<< HEAD
   library(emmeans) # for posthoc
   library(lme4) # to add random effect to lm
+=======
+>>>>>>> 561e07aec1796006abeee7626848271440840a25
 =======
 >>>>>>> 561e07aec1796006abeee7626848271440840a25
   library(boot) # for boostrapping
   
   # ANOVA ----
   # ..Figure 1 - Season effect ----
+<<<<<<< HEAD
 <<<<<<< HEAD
   aovN.seas <- lm(log10(masscorr.N.excr) ~ Season * Species.code, data = excr)
   Anova(aovN.seas)
@@ -130,6 +134,8 @@
   Anova(PexcrSI.null, type = 'III')
   AIC(PexcrSI.15N, PexcrSI.13C, PexcrSI.null)
 =======
+=======
+>>>>>>> 561e07aec1796006abeee7626848271440840a25
   excr.verts <- excr %>% dplyr::filter(Species.code != 'QM')
   anova(lm(log10(massnorm.N.excr) ~ Incub..Temperature, data = excr.verts))
   anovaN <- lm(log10(massnorm.N.excr) ~ Season*Species.code, data = excr.verts)
@@ -200,6 +206,9 @@
   
   compare_performance(PexcrSI, PexcrSI.null, rank = T)
 
+<<<<<<< HEAD
+>>>>>>> 561e07aec1796006abeee7626848271440840a25
+=======
 >>>>>>> 561e07aec1796006abeee7626848271440840a25
   
   # misc

@@ -10,6 +10,7 @@
   library(ggdist) # for stat_halfeye
   library(ggpubr) # for ggarrange
 <<<<<<< HEAD
+<<<<<<< HEAD
   library(patchwork) # to arrange multiple plots on one page
   library(ciTools)
   
@@ -32,10 +33,13 @@
   
 =======
 >>>>>>> 561e07aec1796006abeee7626848271440840a25
+=======
+>>>>>>> 561e07aec1796006abeee7626848271440840a25
   
   # set up plotting parameters and functions ----
   point.size = 1.5
   line.width = .5
+<<<<<<< HEAD
 <<<<<<< HEAD
   stat.size = 3
   fill.alpha = .3
@@ -70,6 +74,8 @@
       scale_fill_manual(name = 'Season',
                           labels = Season.labels,
 =======
+=======
+>>>>>>> 561e07aec1796006abeee7626848271440840a25
   stat.size = 2.5
   fill.alpha = .3
   Season.labels = c("Summer", "Fall")
@@ -90,13 +96,20 @@
       theme_classic(base_size = 10) +
       scale_colour_manual(name = 'Season',
                           labels = Season.labels,
+<<<<<<< HEAD
+>>>>>>> 561e07aec1796006abeee7626848271440840a25
+=======
 >>>>>>> 561e07aec1796006abeee7626848271440840a25
                           values = Season.colors)
   }
   
   plot_season <- function(y) {
 <<<<<<< HEAD
+<<<<<<< HEAD
     ggplot(excr,
+=======
+    ggplot(excr.verts,
+>>>>>>> 561e07aec1796006abeee7626848271440840a25
 =======
     ggplot(excr.verts,
 >>>>>>> 561e07aec1796006abeee7626848271440840a25
@@ -107,6 +120,7 @@
       geom_boxplot(width = .25, size = line.width, outlier.shape = NA, alpha = .2) +
       geom_point(size = point.size, alpha = fill.alpha, 
                  position = position_jitter(seed = 1, width = .1)) +
+<<<<<<< HEAD
 <<<<<<< HEAD
       theme_classic(base_size = 10) +
       scale_x_discrete(labels = c("Summer", "Fall")) +
@@ -128,6 +142,8 @@
                          labels = Species.SI.labels,
                          values = c(3, 13, 8, 23, 11, 15, 17, 16)) +
 =======
+=======
+>>>>>>> 561e07aec1796006abeee7626848271440840a25
       stat_compare_means(comparisons = list(c(1, 2)),
                          label = 'p.signif', size = stat.size,
                          bracket.size = line.width) +
@@ -143,6 +159,9 @@
       geom_smooth(method = lm, formula = y ~ x, 
                   color = 'black', alpha = fill.alpha, linewidth = line.width) +
       scale_colour_manual(values = Season.colors) +
+<<<<<<< HEAD
+>>>>>>> 561e07aec1796006abeee7626848271440840a25
+=======
 >>>>>>> 561e07aec1796006abeee7626848271440840a25
       theme_classic(base_size = 10) 
     
@@ -157,6 +176,7 @@
       scale_color_viridis(option = 'D',
                           name = 'Species',
                           labels = Species.pop.labels,
+<<<<<<< HEAD
 <<<<<<< HEAD
                           discrete = T)
   }
@@ -257,6 +277,8 @@
                aes(yintercept = log10(Mean)), linetype = 'dashed', 
                linewidth = line.width) +
 =======
+=======
+>>>>>>> 561e07aec1796006abeee7626848271440840a25
                           discrete = T) 
   }
   
@@ -288,11 +310,15 @@
     labs(x = '',
          y = expression(atop(Log[10]~"mass-normalized", 
                              paste(N~excretion~"(μg N/g/h)")))) +
+<<<<<<< HEAD
+>>>>>>> 561e07aec1796006abeee7626848271440840a25
+=======
 >>>>>>> 561e07aec1796006abeee7626848271440840a25
     theme(axis.text.x = element_blank())
   Nexcr15N.p
   
   # N excretion vs d13C
+<<<<<<< HEAD
 <<<<<<< HEAD
   Nexcr13C.p <- plot_si(excr.SI$d13C, excr.SI$masscorr.N.excr) +
     labs(x = '',
@@ -305,11 +331,17 @@
     labs(x = '',
          y = '') +
 >>>>>>> 561e07aec1796006abeee7626848271440840a25
+=======
+  Nexcr13C.p <- plot_si(excr$d13C, excr$massnorm.N.excr) +
+    labs(x = '',
+         y = '') +
+>>>>>>> 561e07aec1796006abeee7626848271440840a25
     theme(axis.text.x = element_blank(),
           axis.text.y = element_blank())
   Nexcr13C.p
   
   # P excretion vs d15N
+<<<<<<< HEAD
 <<<<<<< HEAD
   Pexcr15N.p <- plot_si(excr.SI$d15N, excr.SI$masscorr.P.excr) +
     labs(x = '',
@@ -319,15 +351,21 @@
                aes(yintercept = log10(Mean)), linetype = 'dashed', 
                linewidth = line.width) +
 =======
+=======
+>>>>>>> 561e07aec1796006abeee7626848271440840a25
   Pexcr15N.p <- plot_si(excr$d15N, excr$massnorm.P.excr) +
     labs(x = '',
          y = expression(atop(Log[10]~"mass-normalized", 
                              paste(P~excretion~"(μg P/g/h)")))) +
+<<<<<<< HEAD
+>>>>>>> 561e07aec1796006abeee7626848271440840a25
+=======
 >>>>>>> 561e07aec1796006abeee7626848271440840a25
     theme(axis.text.x = element_blank())
   Pexcr15N.p
   
   # P excretion vs d13C
+<<<<<<< HEAD
 <<<<<<< HEAD
   Pexcr13C.p <- plot_si(excr.SI$d13C, excr.SI$masscorr.P.excr) +
     labs(x = '',
@@ -340,11 +378,17 @@
     labs(x = '',
          y = '') +
 >>>>>>> 561e07aec1796006abeee7626848271440840a25
+=======
+  Pexcr13C.p <- plot_si(excr$d13C, excr$massnorm.P.excr) +
+    labs(x = '',
+         y = '') +
+>>>>>>> 561e07aec1796006abeee7626848271440840a25
     theme(axis.text.x = element_blank(),
           axis.text.y = element_blank())
   Pexcr13C.p
   
   # N:P excretion vs d15N
+<<<<<<< HEAD
 <<<<<<< HEAD
   NPexcr15N.p <- plot_si(excr.SI$d15N, excr.SI$masscorr.NP.excr) +
     geom_hline(data = excr.ss %>% filter(Variable == 'masscorr.NP.excr'), 
@@ -357,15 +401,24 @@
     labs(x = expression(δ^{15} * 'N (‰)'),
          y = expression(atop(Log[10]~"mass-normalized", 
 >>>>>>> 561e07aec1796006abeee7626848271440840a25
+=======
+  NPexcr15N.p <- plot_si(excr$d15N, excr$massnorm.NP.excr) +
+    labs(x = expression(δ^{15} * 'N (‰)'),
+         y = expression(atop(Log[10]~"mass-normalized", 
+>>>>>>> 561e07aec1796006abeee7626848271440840a25
                              paste(N:P~excretion~"(molar)")))) 
   NPexcr15N.p
   
   # N:P excretion vs d13C
 <<<<<<< HEAD
+<<<<<<< HEAD
   NPexcr13C.p <- plot_si(excr.SI$d13C, excr.SI$masscorr.NP.excr) +
     geom_hline(data = excr.ss %>% filter(Variable == 'masscorr.NP.excr'), 
                aes(yintercept = log10(Mean)), linetype = 'dashed', 
                linewidth = line.width) +
+=======
+  NPexcr13C.p <- plot_si(excr$d13C, excr$massnorm.NP.excr) +
+>>>>>>> 561e07aec1796006abeee7626848271440840a25
 =======
   NPexcr13C.p <- plot_si(excr$d13C, excr$massnorm.NP.excr) +
 >>>>>>> 561e07aec1796006abeee7626848271440840a25
@@ -380,6 +433,7 @@
             NPexcr15N.p, NPexcr13C.p,
             nrow = 3, ncol = 2,
             labels = c("(a)", "(b)", "(c)", "(d)", "(e)", "(f)"),
+<<<<<<< HEAD
 <<<<<<< HEAD
             font.label = list(size = 10), 
             label.x = 0.27, label.y = 1.02, common.legend = T,
@@ -400,6 +454,8 @@
          y = expression(atop(Log[10]~population, 
                              paste(P~excretion~μg~P/m^2/h))))
 =======
+=======
+>>>>>>> 561e07aec1796006abeee7626848271440840a25
             font.label = list(size = 10), legend = 'none',
             label.x = 0.25, label.y = 1.02, common.legend = T,
             align = 'hv')
@@ -418,12 +474,16 @@
     labs(x = '',
          y = expression(atop(Log[10]~population, 
                              paste(P~excretion~"(μg P/ha/h)"))))
+<<<<<<< HEAD
+>>>>>>> 561e07aec1796006abeee7626848271440840a25
+=======
 >>>>>>> 561e07aec1796006abeee7626848271440840a25
   PopPexcr.yr.p
   
   # combine plots ----
   ggarrange(PopNexcr.yr.p, PopPexcr.yr.p, nrow = 2, 
             labels = c("(a)", "(b)"),
+<<<<<<< HEAD
 <<<<<<< HEAD
             font.label = list(size = 10), label.x = 0.22, label.y = 1,
             legend = 'right', align = 'v', common.legend = T)
@@ -492,6 +552,8 @@
   write_csv(excr.ss, "output/excr_summary.csv")
   write_csv(excr.seas.ss, "output/excr_summary_season.csv")
 =======
+=======
+>>>>>>> 561e07aec1796006abeee7626848271440840a25
             font.label = list(size = 10), label.x = 0.18, label.y = 1,
             legend = 'right', align = 'v', common.legend = T)
   ggsave('figures/final-figures/Fig3.tiff', 
@@ -501,5 +563,9 @@
   # Figure 4 ----
   
   # Figure S1 ----
+<<<<<<< HEAD
+  
+>>>>>>> 561e07aec1796006abeee7626848271440840a25
+=======
   
 >>>>>>> 561e07aec1796006abeee7626848271440840a25

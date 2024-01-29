@@ -13,6 +13,7 @@
   
   # check for outliers ----
 <<<<<<< HEAD
+<<<<<<< HEAD
   ggboxplot(excr, "Season", "masscorr.N.excr", color = 'Species.code',
             palette = 'viridis') 
   outliers <- excr %>% 
@@ -20,6 +21,8 @@
     group_by(Season) %>% 
     identify_outliers(masscorr.N.excr)
 =======
+=======
+>>>>>>> 561e07aec1796006abeee7626848271440840a25
   ggboxplot(excr, "Season", "massnorm.N.excr", color = 'Species.code',
             palette = 'viridis') 
   excr %>% 
@@ -41,6 +44,9 @@
   
   # check homogeneity of variances
   excr.aov %>% levene_test(massnorm.C.excr ~ DOC.level)
+<<<<<<< HEAD
+>>>>>>> 561e07aec1796006abeee7626848271440840a25
+=======
 >>>>>>> 561e07aec1796006abeee7626848271440840a25
   
   # Individual excretion rate ----

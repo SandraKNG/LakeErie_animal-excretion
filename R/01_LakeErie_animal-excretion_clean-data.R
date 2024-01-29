@@ -9,6 +9,10 @@
   library(datawizard) # to do summary statistics
   
 <<<<<<< HEAD
+<<<<<<< HEAD
+=======
+  # load dataset ----
+>>>>>>> 561e07aec1796006abeee7626848271440840a25
 =======
   # load dataset ----
 >>>>>>> 561e07aec1796006abeee7626848271440840a25
@@ -28,6 +32,7 @@
            P.excretion.rate.t = `P excretion rate 2 (ug/h/ind)`,
            N.excretion.rate.t = `N excretion rate 2 (ug/h/ind)`,
 <<<<<<< HEAD
+<<<<<<< HEAD
            BodyC = `%C tissue`,
            BodyN = `%N tissue`,
            BodyP = `%P tissue`,
@@ -37,6 +42,11 @@
            Temp = `Incub. Temperature`,
            AmTDN = `TDN (ug/L)...40`,
            AmTDP = `TDP (ug/L)...39`) %>% 
+=======
+           C.tissue = `%C tissue`,
+           N.tissue = `%N tissue`,
+           P.tissue = `%P tissue`) %>% 
+>>>>>>> 561e07aec1796006abeee7626848271440840a25
 =======
            C.tissue = `%C tissue`,
            N.tissue = `%N tissue`,
@@ -52,8 +62,12 @@
   biomass <- bms %>% 
     rename(Biomass = `Biomass (kg/ha)`,
 <<<<<<< HEAD
+<<<<<<< HEAD
            Species.code = 'Species code') %>% 
     mutate(Species.code = if_else(Species.code == 'QM', 'DM', Species.code))
+=======
+           Species.code = 'Species code')
+>>>>>>> 561e07aec1796006abeee7626848271440840a25
 =======
            Species.code = 'Species code')
 >>>>>>> 561e07aec1796006abeee7626848271440840a25
@@ -66,6 +80,7 @@
          aes(x = Log10.mass, y = Log10.P.excretion.rate)) +
     geom_point()
   # vert
+<<<<<<< HEAD
 <<<<<<< HEAD
   # ggplot(excr %>% filter(Species.code != 'DM'), 
   #        aes(x = Log10.mass, y = Log10.P.excretion.rate)) +
@@ -83,6 +98,8 @@
   #        aes(x = Log10.mass, y = Log10.N.excretion.rate)) +
   #   geom_point()
 =======
+=======
+>>>>>>> 561e07aec1796006abeee7626848271440840a25
   ggplot(excr %>% filter(Species.code != 'DM'), 
          aes(x = Log10.mass, y = Log10.P.excretion.rate)) +
     geom_point()
@@ -98,6 +115,9 @@
   ggplot(excr %>% filter(Species.code != 'QM'), 
          aes(x = Log10.mass, y = Log10.N.excretion.rate)) +
     geom_point()
+<<<<<<< HEAD
+>>>>>>> 561e07aec1796006abeee7626848271440840a25
+=======
 >>>>>>> 561e07aec1796006abeee7626848271440840a25
   
   # get coeff of variation ----
@@ -111,6 +131,7 @@
   
   # with TDN and TDP
 <<<<<<< HEAD
+<<<<<<< HEAD
   verts.Pm.t <- lm(log10(P.excretion.rate.t) ~ log10(Mass), 
                  data = excr %>% filter(Species.code != 'QM'))
   verts.Pcoeff.t <- verts.Pm$coefficients["log10(Mass)"]
@@ -118,19 +139,28 @@
                  data = excr %>% filter(Species.code != 'QM'))
   verts.Ncoeff.t <- verts.Nm$coefficients["log10(Mass)"]
 =======
+=======
+>>>>>>> 561e07aec1796006abeee7626848271440840a25
   verts.Pm <- lm(Log10.P.excretion.rate.t ~ Log10.mass, 
                  data = excr %>% filter(Species.code != 'QM'))
   verts.Pcoeff <- verts.Pm$coefficients["Log10.mass"]
   verts.Nm <- lm(Log10.N.excretion.rate.t ~ Log10.mass, 
                  data = excr %>% filter(Species.code != 'QM'))
   verts.Ncoeff <- verts.Nm$coefficients["Log10.mass"]
+<<<<<<< HEAD
+>>>>>>> 561e07aec1796006abeee7626848271440840a25
+=======
 >>>>>>> 561e07aec1796006abeee7626848271440840a25
   
   # invert
   ggplot(excr %>% filter(Species.code == 'QM'),
          #Log10.mass > -2.328827), 
 <<<<<<< HEAD
+<<<<<<< HEAD
          aes(x = log10(Mass), y = log10(P.excretion.rate))) +
+=======
+         aes(x = Log10.mass, y = Log10.P.excretion.rate.t)) +
+>>>>>>> 561e07aec1796006abeee7626848271440840a25
 =======
          aes(x = Log10.mass, y = Log10.P.excretion.rate.t)) +
 >>>>>>> 561e07aec1796006abeee7626848271440840a25
@@ -148,6 +178,7 @@
   #Log10.P.excretion.rate < -0.6))
   inverts.Ncoeff <- inverts.Nm$coefficients["Log10.mass"]
   
+<<<<<<< HEAD
 <<<<<<< HEAD
   # # ..SP: Sort observations by species ----
   # obs.spsummary <- excr %>% 
@@ -215,6 +246,8 @@
   excr.SI <- excr %>% filter(d13C < 0)
   
 =======
+=======
+>>>>>>> 561e07aec1796006abeee7626848271440840a25
   # ..SP: Sort observations by species ----
   obs.spsummary <- excr %>% 
     group_by(Species.code) %>% 
@@ -280,6 +313,9 @@
       (31 / 14)
   )
   
+<<<<<<< HEAD
+>>>>>>> 561e07aec1796006abeee7626848271440840a25
+=======
 >>>>>>> 561e07aec1796006abeee7626848271440840a25
   # ..make excr dataset with one entry for each excretion average ----
   # for a seasonal dataset
@@ -297,6 +333,7 @@
     )
   
   # for a yearly dataset
+<<<<<<< HEAD
 <<<<<<< HEAD
   # need to convert biomass from kg/ha to g/m2 (/10^4)
   excr.yr <- excr %>% 
@@ -415,6 +452,8 @@
   
   excr.sp.ss <- excr.yr %>% 
 =======
+=======
+>>>>>>> 561e07aec1796006abeee7626848271440840a25
   excr.yr <- excr %>% 
     group_by(Species.code) %>% 
     summarise(
@@ -451,6 +490,9 @@
   
   # ..summary statistics ----
   excr.ss <- excr.yr %>% 
+<<<<<<< HEAD
+>>>>>>> 561e07aec1796006abeee7626848271440840a25
+=======
 >>>>>>> 561e07aec1796006abeee7626848271440840a25
     select(c('Pop.N.excr.sp', 'Pop.P.excr.sp')) %>% 
     describe_distribution()
