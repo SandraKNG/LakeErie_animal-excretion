@@ -8,14 +8,6 @@
   library(rfishbase) # to get fish trophic position using fishbase.org database
   library(datawizard) # to do summary statistics
   
-<<<<<<< HEAD
-<<<<<<< HEAD
-=======
-  # load dataset ----
->>>>>>> 561e07aec1796006abeee7626848271440840a25
-=======
-  # load dataset ----
->>>>>>> 561e07aec1796006abeee7626848271440840a25
   er <- read_csv('data/2022-03-03_LakeErie_Mastersheet.csv')
   bms <- read_csv('data/2022-03-03_LakeErie_Biomass-estimates.csv')
   
@@ -31,8 +23,6 @@
            N.excretion.rate = `N excretion rate (ug/h/ind)`,
            P.excretion.rate.t = `P excretion rate 2 (ug/h/ind)`,
            N.excretion.rate.t = `N excretion rate 2 (ug/h/ind)`,
-<<<<<<< HEAD
-<<<<<<< HEAD
            BodyC = `%C tissue`,
            BodyN = `%N tissue`,
            BodyP = `%P tissue`,
@@ -42,46 +32,30 @@
            Temp = `Incub. Temperature`,
            AmTDN = `TDN (ug/L)...40`,
            AmTDP = `TDP (ug/L)...39`) %>% 
-=======
-           C.tissue = `%C tissue`,
-           N.tissue = `%N tissue`,
-           P.tissue = `%P tissue`) %>% 
->>>>>>> 561e07aec1796006abeee7626848271440840a25
-=======
-           C.tissue = `%C tissue`,
-           N.tissue = `%N tissue`,
-           P.tissue = `%P tissue`) %>% 
->>>>>>> 561e07aec1796006abeee7626848271440840a25
+    filter(P.excretion.rate > 0,
+           P.excretion.rate.t > 0) %>% 
     dplyr::mutate(
       Season = fct_relevel(Season, 'S', 'F'),
       Species.code = if_else(Species.code == 'QM', 'DM', Species.code)) %>%  
     filter(
-           !(Species.code %in% c("CTL1","CTL2","CTL3","CTL4","CTL5","CTL6"))
+      !(Species.code %in% c("CTL1","CTL2","CTL3","CTL4","CTL5","CTL6"))
     )
   
   biomass <- bms %>% 
     rename(Biomass = `Biomass (kg/ha)`,
-<<<<<<< HEAD
-<<<<<<< HEAD
            Species.code = 'Species code') %>% 
     mutate(Species.code = if_else(Species.code == 'QM', 'DM', Species.code))
-=======
-           Species.code = 'Species code')
->>>>>>> 561e07aec1796006abeee7626848271440840a25
-=======
-           Species.code = 'Species code')
->>>>>>> 561e07aec1796006abeee7626848271440840a25
   
   # plot log10 P excretion rate vs log10 mass ----
   ggplot(excr, 
          aes(x = log10(Mass), y = log10(N.excretion.rate))) +
-    geom_point()
+    geom_point(aes(colour = Species.code), size = 2) +
+    theme_classic(base_size = 17)
   ggplot(excr, 
-         aes(x = Log10.mass, y = Log10.P.excretion.rate)) +
-    geom_point()
+         aes(x = log10(Mass), y = log10(P.excretion.rate))) +
+    geom_point(aes(colour = Species.code), size = 2) +
+    theme_classic(base_size = 17)
   # vert
-<<<<<<< HEAD
-<<<<<<< HEAD
   # ggplot(excr %>% filter(Species.code != 'DM'), 
   #        aes(x = Log10.mass, y = Log10.P.excretion.rate)) +
   #   geom_point()
@@ -97,73 +71,28 @@
   # ggplot(excr %>% filter(Species.code != 'QM'), 
   #        aes(x = Log10.mass, y = Log10.N.excretion.rate)) +
   #   geom_point()
-=======
-=======
->>>>>>> 561e07aec1796006abeee7626848271440840a25
-  ggplot(excr %>% filter(Species.code != 'DM'), 
-         aes(x = Log10.mass, y = Log10.P.excretion.rate)) +
-    geom_point()
-  ggplot(excr %>% filter(Species.code == 'LP'), 
-         aes(x = Log10.mass, y = Log10.P.excretion.rate)) +
-    geom_point()
-  ggplot(excr %>% filter(Species.code == 'LB'), 
-         aes(x = Log10.mass, y = Log10.P.excretion.rate)) +
-    geom_point()
-  ggplot(excr %>% filter(Species.code == 'YB'), 
-         aes(x = Log10.mass, y = Log10.P.excretion.rate)) +
-    geom_point()
-  ggplot(excr %>% filter(Species.code != 'QM'), 
-         aes(x = Log10.mass, y = Log10.N.excretion.rate)) +
-    geom_point()
-<<<<<<< HEAD
->>>>>>> 561e07aec1796006abeee7626848271440840a25
-=======
->>>>>>> 561e07aec1796006abeee7626848271440840a25
   
   # get coeff of variation ----
   # verts animals without DM - SRP and NH4
   verts.Nm <- lm(log10(N.excretion.rate) ~ log10(Mass), 
-               data = excr %>% filter(Species.code != 'DM'))
+                 data = excr %>% filter(Species.code != 'DM'))
   verts.Ncoeff <- verts.Nm$coefficients["log10(Mass)"]
   verts.Pm <- lm(log10(P.excretion.rate) ~ log10(Mass), 
-               data = excr %>% filter(Species.code != 'DM'))
+                 data = excr %>% filter(Species.code != 'DM'))
   verts.Pcoeff <- verts.Pm$coefficients["log10(Mass)"]
   
   # with TDN and TDP
-<<<<<<< HEAD
-<<<<<<< HEAD
   verts.Pm.t <- lm(log10(P.excretion.rate.t) ~ log10(Mass), 
-                 data = excr %>% filter(Species.code != 'QM'))
+                   data = excr %>% filter(Species.code != 'QM'))
   verts.Pcoeff.t <- verts.Pm$coefficients["log10(Mass)"]
   verts.Nm.t <- lm(log10(N.excretion.rate.t) ~ log10(Mass), 
-                 data = excr %>% filter(Species.code != 'QM'))
+                   data = excr %>% filter(Species.code != 'QM'))
   verts.Ncoeff.t <- verts.Nm$coefficients["log10(Mass)"]
-=======
-=======
->>>>>>> 561e07aec1796006abeee7626848271440840a25
-  verts.Pm <- lm(Log10.P.excretion.rate.t ~ Log10.mass, 
-                 data = excr %>% filter(Species.code != 'QM'))
-  verts.Pcoeff <- verts.Pm$coefficients["Log10.mass"]
-  verts.Nm <- lm(Log10.N.excretion.rate.t ~ Log10.mass, 
-                 data = excr %>% filter(Species.code != 'QM'))
-  verts.Ncoeff <- verts.Nm$coefficients["Log10.mass"]
-<<<<<<< HEAD
->>>>>>> 561e07aec1796006abeee7626848271440840a25
-=======
->>>>>>> 561e07aec1796006abeee7626848271440840a25
   
   # invert
   ggplot(excr %>% filter(Species.code == 'QM'),
          #Log10.mass > -2.328827), 
-<<<<<<< HEAD
-<<<<<<< HEAD
          aes(x = log10(Mass), y = log10(P.excretion.rate))) +
-=======
-         aes(x = Log10.mass, y = Log10.P.excretion.rate.t)) +
->>>>>>> 561e07aec1796006abeee7626848271440840a25
-=======
-         aes(x = Log10.mass, y = Log10.P.excretion.rate.t)) +
->>>>>>> 561e07aec1796006abeee7626848271440840a25
     geom_point()
   ggplot(excr %>% filter(Species.code == 'QM'), 
          aes(x = Log10.mass, y = Log10.N.excretion.rate.t)) +
@@ -178,8 +107,6 @@
   #Log10.P.excretion.rate < -0.6))
   inverts.Ncoeff <- inverts.Nm$coefficients["Log10.mass"]
   
-<<<<<<< HEAD
-<<<<<<< HEAD
   # # ..SP: Sort observations by species ----
   # obs.spsummary <- excr %>% 
   #   group_by(Species.code) %>% 
@@ -245,78 +172,8 @@
   # make stable isotopes dataset
   excr.SI <- excr %>% filter(d13C < 0)
   
-=======
-=======
->>>>>>> 561e07aec1796006abeee7626848271440840a25
-  # ..SP: Sort observations by species ----
-  obs.spsummary <- excr %>% 
-    group_by(Species.code) %>% 
-    tally() %>% 
-    # Now arrange by smallest number of observations to largest
-    arrange(n)
+  excr.SI.smry <- excr.SI %>% group_by(Season, Species.code) %>%  reframe(n = n())
   
-  head(obs.spsummary)
-  
-  # let's take only species with 3 or more observations and carry on.
-  # Here I create a new data.frame that only has species with 10 or more observations. 
-  newdf.sp <- obs.spsummary %>% 
-    filter(n > 3) %>% 
-    left_join(excr, by = "Species.code") %>% 
-    select(-10)
-  
-  # Now get unique species in this new df
-  
-  # ....scaling exponent b for each species for N/P excretions ----
-  # what are the unique species
-  species <- unique(newdf.sp$Species.code)
-  nb.species <- length(species)
-  
-  results.spdf <- data.frame() # Erica: I made an empty dataframe to put results into
-  
-  for (i in 1:nb.species) {
-    subdf <- newdf.sp %>% 
-      filter(Species.code == species[i]) # equivalent to 'Species X'
-    subdf
-    
-    subdf %>% 
-      select(N.excretion.rate, 
-             P.excretion.rate, Mass) 
-    
-    
-    modelN <- lm(log10(N.excretion.rate)~log10(Mass), data = subdf)
-    modelP <- lm(log10(P.excretion.rate)~log10(Mass), data = subdf)
-    result <- data.frame(Species.code = species[i],
-                         b.coeff.N.excr.sp = modelN$coefficients["log10(Mass)"],
-                         b.coeff.P.excr.sp = modelP$coefficients["log10(Mass)"],
-                         stringsAsFactors = FALSE)
-    results.spdf <- bind_rows(results.spdf, result)
-    cat(species[i], '\n') # to check where are in loop
-  }
-  results.spdf # Here are all of your results in one data.frame. You can use "left_join" to join it to another data.frame if you want to further down in the code.
-  excr <- left_join(excr, results.spdf, by = "Species.code")
-  
-  # ..do mass-normalized excretion rates calculations ----
-  excr <- excr %>% mutate(
-    massnorm.N.excr =
-      ifelse(
-        Species.code != "DM",
-        N.excretion.rate / (Mass ^ verts.Ncoeff),
-        N.excretion.rate / Mass
-      ),
-    massnorm.P.excr =
-      ifelse(
-        Species.code != "DM",
-        P.excretion.rate / (Mass ^ verts.Pcoeff),
-        P.excretion.rate / Mass
-      ),
-    massnorm.NP.excr = (massnorm.N.excr / massnorm.P.excr) /
-      (31 / 14)
-  )
-  
-<<<<<<< HEAD
->>>>>>> 561e07aec1796006abeee7626848271440840a25
-=======
->>>>>>> 561e07aec1796006abeee7626848271440840a25
   # ..make excr dataset with one entry for each excretion average ----
   # for a seasonal dataset
   excr.seas <- excr %>% 
@@ -326,15 +183,13 @@
         ends_with('excr'),
         d13C:d15N
       ),
-        \(x) mean(x, na.rm = TRUE),
-        .names = "{.col}.sp"
+      \(x) mean(x, na.rm = TRUE),
+      .names = "{.col}.sp"
       ),
       n = n()
     )
   
   # for a yearly dataset
-<<<<<<< HEAD
-<<<<<<< HEAD
   # need to convert biomass from kg/ha to g/m2 (/10^4)
   excr.yr <- excr %>% 
     group_by(Species.code) %>% 
@@ -349,17 +204,20 @@
         \(x) mean(x, na.rm = TRUE)
       ),
       n = n()
-     ) %>% 
+    ) %>% 
     left_join(biomass, by = 'Species.code') %>%
     mutate(
       Biomass.g.m2 = Biomass * 10 ^ 3 / 10 ^ 4,
       Pop.N.excr = masscorr.N.excr * Biomass.g.m2,
       Pop.P.excr = masscorr.P.excr * Biomass.g.m2,
+      Pop.NP.excr = masscorr.NP.excr * Biomass.g.m2,
+      Pop.P.excr = masscorr.P.excr * Biomass.g.m2,
       Pop.N.excr.t = masscorr.N.excr.t * Biomass.g.m2,
-      Pop.P.excr.t = masscorr.P.excr.t * Biomass.g.m2
+      Pop.P.excr.t = masscorr.P.excr.t * Biomass.g.m2,
+      Pop.NP.excr.t = masscorr.NP.excr.t * Biomass.g.m2
     ) %>%
     filter(!is.na(Biomass))
-
+  
   # make volumetric excretion dataset
   # convert Lake Erie water retention time from yr to h (x 24h x 325d = 8760h)
   # convert Lake Erie surface area from km2 to m2 (x 10^6)
@@ -399,9 +257,9 @@
       Agg.P.excr = sum(Pop.P.excr, na.rm = TRUE)
     ) %>% 
     mutate(
-    Nload = Agg.N.excr * 8760 * Area / 10 ^ 12,
-    Pload = Agg.P.excr * 8760 * Area / 10 ^ 12,
-    Source = 'Fish'
+      Nload = Agg.N.excr * 8760 * Area / 10 ^ 12,
+      Pload = Agg.P.excr * 8760 * Area / 10 ^ 12,
+      Source = 'Fish'
     )
   
   excr.DM.load <- excr.yr %>%  filter(Year == 2019, Species.code == 'DM') %>%
@@ -418,13 +276,13 @@
     )
   
   # ambient load based on the tributary calc + 51% method (Maccoux et al. 2016)
-  ambient.load <- tibble(Pload = c(13544, 4577), 
+  ambient.load <- tibble(Pload = c(13544, 4470), 
                          Source = c('TP', 'SRP'))
   
   excr.load <- excr.load %>% 
     bind_rows(excr.DM.load) %>% 
     bind_rows(ambient.load) #%>% 
-    #mutate(Source = c('TP', 'SRP', 'Fish', 'Dreissenid'))
+  #mutate(Source = c('TP', 'SRP', 'Fish', 'Dreissenid'))
   
   # Pop N excr for mussel in my study =  ug/m2/h
   # vs. excretion + egesta Li et al (2021) = 0.0468 - 9 mg/m2/d
@@ -432,17 +290,26 @@
   
   Li.Pflux.ugm2h <- Li.Pflux * 10^3 / 24
   LiPflux.Ggyr <- Li.Pflux.ugm2h * 8760 * 10^(-15)
-
+  
   # ..summary statistics ----
   excr.ss <- excr %>% 
     select(c('masscorr.N.excr','masscorr.P.excr', 'masscorr.NP.excr', 'Mass', 
              'Temp')) %>% 
     describe_distribution()
   
-  excr.seas.ss <- excr %>% 
+  excr.seas.f.ss <- excr %>% filter(Species.code != 'DM') %>% 
     group_by(Season) %>% 
-    select(c('masscorr.N.excr','masscorr.P.excr', 'massnorm.NP.excr', 'Mass', 
-             'Temp')) %>% 
+    select(c('masscorr.N.excr','masscorr.P.excr', 'masscorr.NP.excr', 
+             #'massnorm.N.excr','massnorm.P.excr',
+             'masscorr.N.excr.t','masscorr.P.excr.t', 'masscorr.NP.excr.t',
+             'd15N', 'd13C', 'Mass', 'BodyC', 'BodyN', 
+             'Temp', 'AmTDN', 'AmTDP')) %>% 
+    describe_distribution()
+  
+  excr.seas.dm.ss <- excr %>% filter(Species.code == 'DM') %>% 
+    select(c('masscorr.N.excr','masscorr.P.excr', 'masscorr.NP.excr', 
+             'masscorr.N.excr.t','masscorr.P.excr.t', 'masscorr.NP.excr.t',
+             'd15N', 'd13C', 'Mass', 'BodyC', 'BodyN', 'BodyP')) %>% 
     describe_distribution()
   
   # excr.verts.ss <- excr.verts %>% 
@@ -451,49 +318,10 @@
   #   describe_distribution()
   
   excr.sp.ss <- excr.yr %>% 
-=======
-=======
->>>>>>> 561e07aec1796006abeee7626848271440840a25
-  excr.yr <- excr %>% 
-    group_by(Species.code) %>% 
-    summarise(
-      across(
-        ends_with('excr'),
-        function(x) mean(x, na.rm = TRUE),
-        .names = "{.col}.sp"
-      ),
-      n = n()
-    ) %>% 
-    mutate(
-      Pop.N.excr.sp = massnorm.N.excr.sp*Biomass*10^3, # need to convert kg/ha to g/ha
-      Pop.P.excr.sp = massnorm.P.excr.sp*Biomass*10^3
-    )
-  
-  # excr.sp <- excr %>% group_by(Season, Species.code) %>% 
-  #   summarise(massnorm.N.excr.sp = mean(massnorm.N.excr, na.rm = T),
-  #             massnorm.P.excr.sp = mean(massnorm.P.excr, na.rm = T),
-  #             massnorm.NP.excr.sp = mean(massnorm.NP.excr, na.rm = T),
-  #             d13C.sp = mean(d13C, na.rm = T),
-  #             d15N.sp = mean(d15N, na.rm = T)) %>% 
-  #   filter(!is.na(d15N.sp))
-  # 
-  # excr.yr <- excr %>% group_by(Species.code) %>% 
-  #   summarise(massnorm.N.excr.sp = mean(massnorm.N.excr, na.rm = T),
-  #             massnorm.P.excr.sp = mean(massnorm.P.excr, na.rm = T),
-  #             massnorm.NP.excr.sp = mean(massnorm.NP.excr, na.rm = T)) %>% 
-  #   left_join(biomass, by = 'Species.code') %>% 
-  #   filter(!is.na(Biomass)) %>% 
-  #   mutate(Pop.N.excr.sp = massnorm.N.excr.sp*Biomass*10^3, # need to convert kg/ha to g/ha
-  #          Pop.P.excr.sp = massnorm.P.excr.sp*Biomass*10^3,
-  #          Log10.Pop.N.excr.sp = log10(Pop.N.excr.sp),
-  #          Log10.Pop.P.excr.sp = log10(Pop.P.excr.sp))
-  
-  # ..summary statistics ----
-  excr.ss <- excr.yr %>% 
-<<<<<<< HEAD
->>>>>>> 561e07aec1796006abeee7626848271440840a25
-=======
->>>>>>> 561e07aec1796006abeee7626848271440840a25
-    select(c('Pop.N.excr.sp', 'Pop.P.excr.sp')) %>% 
+    select(c('Pop.N.excr', 'Pop.P.excr')) %>% 
     describe_distribution()
   
+  CTL.av <- er %>% filter(`Species code` %in% c("CTL1","CTL2","CTL3",
+                                                "CTL4","CTL5","CTL6")) %>% 
+    select(c(`SRP (ug/L)`,  `NH4 (ug/L)`)) %>% 
+    describe_distribution()

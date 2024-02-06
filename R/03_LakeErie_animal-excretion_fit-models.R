@@ -7,33 +7,90 @@
   library(lindia) # to look at model diagnostics
   library(performance) # to compare models
   library(car) # for Anova() function
-<<<<<<< HEAD
-<<<<<<< HEAD
   library(emmeans) # for posthoc
   library(lme4) # to add random effect to lm
-=======
->>>>>>> 561e07aec1796006abeee7626848271440840a25
-=======
->>>>>>> 561e07aec1796006abeee7626848271440840a25
-  library(boot) # for boostrapping
-  
+
   # ANOVA ----
-  # ..Figure 1 - Season effect ----
-<<<<<<< HEAD
-<<<<<<< HEAD
+  # ..Figure 1 - Species ----
+  # aovN.sp <- lm(log10(masscorr.N.excr) ~ Species.code, data = excr)
+  # Anova(aovN.sp)
+  # aovP.sp <- lm(log10(masscorr.P.excr) ~ Species.code, data = excr)
+  # Anova(aovP.sp)
+  # aovNP.sp <- lm(log10(masscorr.NP.excr) ~ Species.code, data = excr)
+  # Anova(aovNP.sp)
+  
+  # Get column indices between "massnorm.SUVA.excr" and "massnorm.C7.excr"
+  start_col <- which(names(excr.var) == "massnorm.SUVA.excr")
+  end_col <- which(names(excr.var) == "massnorm.C7.excr")
+  selected_cols <- names(excr.var)[(start_col):(end_col)]
+  
+  excr.ttest <- excr
+  t_test_results <- list()
+  
+  # Loop through selected columns
+  for (col in selected_cols) {
+    result <- excr.ttest %>%
+      t_test(as.formula(paste(col, "~ 1")), mu = 0, alternative = "greater")
+    
+    # Store the result in the list
+    t_test_results[[col]] <- result
+    
+    # Print progress
+    cat("Processed column:", col, "\n")
+  }
+  
+  # Convert the list of results to a tibble
+  t.test.results <- bind_rows(t_test_results) 
+  t.test.results <- t.test.results %>% 
+    arrange(p) %>% 
+    rename(response = .y.)
+  t.test.results
+  
+  # ..Figure 2 - Season  ----
   aovN.seas <- lm(log10(masscorr.N.excr) ~ Season * Species.code, data = excr)
   Anova(aovN.seas)
   aovP.seas <- lm(log10(masscorr.P.excr) ~ Season * Species.code, data = excr)
-  Anova(aovP)
+  Anova(aovP.seas)
+  aovNP.seas <- lm(log10(masscorr.NP.excr) ~ Season * Species.code, data = excr)
+  Anova(aovNP.seas)
   
-  # ..Figure 2 - Season effect ----
-  aovN.sp <- lm(log10(masscorr.N.excr) ~ Species.code, data = excr)
-  Anova(aovN.seas)
-  aovP.seas <- lm(log10(masscorr.P.excr) ~ Season * Species.code, data = excr)
-  Anova(aovP)
+  # make anova table based on all sp models ----
+  anova_sp_models <- list(
+    "Mass-specific N excretion" = aovN.sp,
+    "Mass-specific P excretion" = aovP.sp,
+    "Mass-specific N:P excretion" = aovNP.sp
+  )
+  combined_anova_sp <- bind_rows(lapply(names(anova_sp_models), function(model_name) {
+    model <- anova_sp_models[[model_name]]
+    anova_result <- rownames_to_column(anova(model), 
+                                       var = "Predictors") %>% as_tibble
+    anova_result$groupname <- model_name
+    return(anova_result)
+  }))
   
-  # need posthoc for species
-  # LM & emmeans ----
+  # make anova table based on all sp models ----
+  anova_seas_models <- list(
+    "Mass-specific N excretion" = aovN.seas,
+    "Mass-specific P excretion" = aovP.seas,
+    "Mass-specific N:P excretion" = aovNP.seas
+  )
+  combined_anova_seas <- bind_rows(lapply(names(anova_seas_models), 
+                                          function(model_name) {
+    model <- anova_seas_models[[model_name]]
+    anova_result <- rownames_to_column(anova(model), 
+                                       var = "Predictors") %>% as_tibble
+    anova_result$groupname <- model_name
+    anova_result <- anova_result %>% 
+      mutate(
+        Predictors = ifelse(
+          Predictors == 'Species.code',
+          'Species',
+          ifelse(Predictors == 'Season:Species.code', 'Season:Species', Predictors
+          )))
+    return(anova_result)
+  }))
+  
+  # ANOVA posthoc - emmeans ----
   emm <- function(lm){
     # pairwise comparisons using emmeans
     m1 <- emmeans(lm, pairwise ~ Species.code, type = 'response')
@@ -53,12 +110,25 @@
   }
   
   pwcN <- emm(aovN.sp)
+  pwcP <- emm(aovP.sp)
+  pwcNP <- emm(aovNP.sp)
   
-  # GLM ----
+  # make contrast table based on all models
+  contrasts <- bind_rows(pwcN[['contrasts']], pwcP[['contrasts']], 
+                         pwcNP[['contrasts']], .id = 'column_label')
+  
+  contrasts <- contrasts %>% 
+    mutate(test = if_else(column_label == 1,  "Mass-normalized N excretion",
+                                  if_else(column_label == 2,  "Mass-normalized P excretion", 
+                                          "Mass-normalized N:P excretion"))) %>% 
+    select(-column_label)
+  
+  
+  # LMER ----
   # data distribution
   hist(excr$masscorr.N.excr)
   
-  # ..Figure 2 - Season effect ----
+  # ..Figure 2 - Season (temperature) ----
   lmN.temp <- lmer(log10(masscorr.N.excr) ~ Temp + (1|Species.code), data = excr)
   lmN.temp2 <- lm(log10(masscorr.N.excr) ~ Temp, data = excr)
   check_model(lmN.temp)
@@ -72,8 +142,13 @@
   AIC(lmP.temp, lmP.temp2)
   Anova(lmP.temp)
   
+  lmNP.temp <- lmer(log10(masscorr.NP.excr) ~ Temp + (1|Species.code), data = excr)
+  lmNP.temp2 <- lm(log10(masscorr.NP.excr) ~ Temp, data = excr)
+  check_model(lmNP.temp)
+  AIC(lmNP.temp, lmNP.temp2)
+  Anova(lmNP.temp)
+  
   # ..Figure 2 - stable isotopes ----
-  corr(excr$Season, excr$d15N)
   
   # make lm and lmer + model performance function
   perf_si <- function(x, y, data) {
@@ -133,83 +208,6 @@
                        data = excr %>% filter(!is.na(d15N)))
   Anova(PexcrSI.null, type = 'III')
   AIC(PexcrSI.15N, PexcrSI.13C, PexcrSI.null)
-=======
-=======
->>>>>>> 561e07aec1796006abeee7626848271440840a25
-  excr.verts <- excr %>% dplyr::filter(Species.code != 'QM')
-  anova(lm(log10(massnorm.N.excr) ~ Incub..Temperature, data = excr.verts))
-  anovaN <- lm(log10(massnorm.N.excr) ~ Season*Species.code, data = excr.verts)
-  anova(anovaN)
-  
-  # GLM ----
-  # data distribution
-  hist(excr$massnorm.N.excr)
-  
-  # make glm function
-  glm_si <- function(x, y) {
-    m <- glm(log10(x) ~ y*Season, 
-             data = excr %>% filter(Species.code == 'QM'))
-    plot(m)
-    Anova(m, type = 'III')
-    return(m)
-  }
-  # ..Figure 2 - stable isotopes ----
-  # N excretion vs d15N
-  NexcrSI.15N <- glm(massnorm.N.excr ~ d15N, 
-                     data = excr, family = Gamma(link = 'log'))
-  
-  NexcrSI.15N <- lm(log10(massnorm.N.excr) ~ d15N*Season, 
-                    data = excr)
-  plot(NexcrSI.15N)
-  gg_diagnose(NexcrSI.15N)
-  Anova(NexcrSI.15N, type = 'III')
-  NexcrSI.null <- lm(Log10.massnorm.N.excr ~ 1,
-                     data = excr)
-  Anova(NexcrSI.null, type = 'III')
-  anova(NexcrSI, NexcrSI.null)
-  compare_performance(NexcrSI, NexcrSI.null, rank = T)
-  
-  # N excretion vs d13C
-  NexcrSI.13C <- lm(log10(massnorm.N.excr) ~ d13C*Season, 
-                    data = excr)
-  plot(NexcrSI.15N)
-  gg_diagnose(NexcrSI.13C)
-  Anova(NexcrSI.13C, type = 'III')
-  NexcrSI.null <- lm(Log10.massnorm.N.excr ~ 1,
-                     data = excr)
-  Anova(NexcrSI.null, type = 'III')
-  anova(NexcrSI, NexcrSI.null)
-  compare_performance(NexcrSI, NexcrSI.null, rank = T)
-  
-  # P excretion vs d15N
-  PexcrSI.15N <- lm(log10(massnorm.P.excr) ~ d15N*Season, 
-                    data = excr)
-  Anova(PexcrSI.15N, type = 'III')
-  summary(PexcrSI.15N)
-  gg_diagnose(PexcrSI.15N)
-  
-  PexcrSI.null <- lm(Log10.massnorm.P.excr ~ 1,
-                     data = excr)
-  Anova(PexcrSI.null, type = 'III')
-  
-  compare_performance(PexcrSI, PexcrSI.null, rank = T)
-  
-  # P excretion vs d13C
-  PexcrSI.13C <- lm(log10(massnorm.P.excr) ~ d13C, 
-                    data = excr)
-  Anova(PexcrSI.13C, type = 'III')
-  gg_diagnose(PexcrSI.13C)
-  
-  PexcrSI.null <- lm(Log10.massnorm.P.excr ~ 1,
-                     data = excr)
-  Anova(PexcrSI.null, type = 'III')
-  
-  compare_performance(PexcrSI, PexcrSI.null, rank = T)
-
-<<<<<<< HEAD
->>>>>>> 561e07aec1796006abeee7626848271440840a25
-=======
->>>>>>> 561e07aec1796006abeee7626848271440840a25
   
   # misc
   

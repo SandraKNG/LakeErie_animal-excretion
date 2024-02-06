@@ -84,7 +84,7 @@ for (j in variables) {
 
 # create new df of daily means
 mean_tributary_df <- data.frame(
-  stream = discharge$stream,
+  stream = discharge_cfs$stream,
   date = discharge_cfs$date,
   discharge_cfs = discharge_cfs$mean,
   TP_mgl = TP_mgl$mean,
@@ -113,6 +113,8 @@ write.csv(tributary_daily_loads_mt, "output/tributary_daily_loads_mt.csv", row.n
 tributary_yearly_loads <- tributary_daily_loads_mt %>% 
   reframe(TP_mt = sum(TP_mt, na.rm = T),
           SRP_mt = sum(SRP_mt, na.rm = T))
+
+write_csv(tributary_yearly_loads, "output/tributary_yearly_loads_mt.csv")
 
 # # daily load plot loop vectors
 # colnames <- names(tributary_daily_loads_mt)
