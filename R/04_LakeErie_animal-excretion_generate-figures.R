@@ -5,6 +5,7 @@
   
   # load libraries ----
   library(gt) # to make tables
+  library(broom.mixed) # to tidy tables
   library(RColorBrewer)
   library(viridisLite)
   library(viridis) # for beautiful colours
@@ -15,6 +16,15 @@
   library(scales) # for trans_breaks
   
   # make tables 
+  # Define a custom function to format p-values
+  format_p_value <- function(x) {
+    ifelse(x < 0.001, "< 0.001", sprintf("%.3f", x))
+  }
+  
+  # Apply custom formatting function to Pr(>F) column
+  combined_anova_sp <- combined_anova_sp %>%
+    mutate(`Pr(>F)` = format_p_value(`Pr(>F)`)) 
+  
   # Table S1 ----
   combined_anova_sp %>%  
     gt(groupname_col = "groupname") %>% 
@@ -33,11 +43,7 @@
     fmt_number(
       columns = c('Sum Sq', 'Mean Sq', 'F value'),
       decimals = 3
-    ) %>% 
-    fmt_number(
-      columns = c('Pr(>F)'),
-      decimals = 2
-    ) %>% 
+    )  %>% 
     tab_style(
       style = cell_borders(
         sides = c("top", "bottom"),
@@ -76,7 +82,11 @@
     ) %>% 
     gtsave("tables_figures/final-tables_figures/tableS2.rtf")
   
-  # Table S1 ----
+  # Table S3 ----
+  # Apply custom formatting function to Pr(>F) column
+  combined_anova_seas <- combined_anova_seas %>%
+    mutate(`Pr(>F)` = format_p_value(`Pr(>F)`)) 
+  
   combined_anova_seas %>%  
     gt(groupname_col = "groupname") %>% 
     cols_label(
@@ -95,10 +105,6 @@
       columns = c('Sum Sq', 'Mean Sq', 'F value'),
       decimals = 3
     ) %>% 
-    fmt_number(
-      columns = c('Pr(>F)'),
-      decimals = 2
-    ) %>% 
     tab_style(
       style = cell_borders(
         sides = c("top", "bottom"),
@@ -110,6 +116,47 @@
       )
     ) %>% 
     gtsave("tables_figures/final-tables_figures/tableS3.rtf")
+  
+  # Table S4
+  # Apply custom formatting function to Pr(>F) column
+  combined_anova_sub_seas <- combined_anova_sub_seas %>%
+    mutate(`Pr(>F)` = format_p_value(`Pr(>F)`)) 
+  
+  combined_anova_sub_seas %>%  
+    gt(groupname_col = "groupname") %>% 
+    cols_label(
+      Predictors = "",
+      Df = md("**df**"),
+      'Sum Sq' = md("**SS**"),
+      'Mean Sq' = md("**MS**"),
+      'F value' = md("**F**"),
+      'Pr(>F)' = md("***p***")
+    ) %>% 
+    cols_align(
+      align = "center",
+      columns = c(Df, 'Sum Sq', 'Mean Sq', 'F value', 'Pr(>F)')
+    ) %>% 
+    fmt_number(
+      columns = c('Sum Sq', 'Mean Sq', 'F value'),
+      decimals = 3
+    ) %>% 
+    tab_style(
+      style = cell_borders(
+        sides = c("top", "bottom"),
+        style = 'hidden'
+      ),
+      locations = cells_body(
+        columns = everything(),
+        rows = everything()
+      )
+    ) %>%
+    gtsave("tables_figures/final-tables_figures/tableS4.rtf")
+  
+  # LMER
+  NexcrSI.15N$coefficients
+  tidy(NexcrSI.15N) %>% 
+    gt() %>%
+    gtsave("tables_figures/final-tables_figures/anova_summary.rtf")
   
   # Set up prediction data ----
   lmN.temp.pred <- excr %>% tidyr::expand(nesting(Species.code, Season),
@@ -135,7 +182,7 @@
   fill.alpha = .3
   Season.labels = c("Summer", "Fall")
   Season.colors = c("goldenrod2", "#D16103")
-  Species.pop.labels <- c('Dreissenid', 'Gizzard shad', 'Logperch',  
+  Species.pop.labels <- c('Gizzard shad', 'Logperch',  
                           'Round goby','White perch','Yellow perch')
   Species.labels <- c('Brown bullhead', 'Dreissenid', 'Goldfish', 'Gizzard shad', 
                'Largemouth bass', 'Logperch', 'Round goby',
@@ -143,10 +190,10 @@
   Species.SI.labels <- c('Brown bullhead', 'Dreissenid', 'Goldfish', 'Gizzard shad', 
                          'Logperch', 'Round goby','White perch', 'Yellow perch')
   
-  excr.sp.sub <- excr %>% filter(!Species.code %in% c('NP', 'WE'))
+  # excr.sp.sub <- excr %>% filter(!Species.code %in% c('NP', 'WE'))
   
   plot_sp <- function(y) {
-    ggplot(excr.sp.sub, aes(x = Species.code, y = log10(y),
+    ggplot(excr, aes(x = Species.code, y = log10(y),
                             color = Season, fill = Season)) +
       geom_jitter(size = point.size, alpha = fill.alpha, 
                   position = position_jitterdodge(jitter.width = 0.3),
@@ -167,8 +214,8 @@
   }
   
   
-  plot_season <- function(y) {
-    ggplot(excr,
+  plot_season <- function(df, y) {
+    ggplot(df,
           aes(x = Season, y = log10(y), 
               color = Season, fill = Season)) +
       stat_halfeye(adjust = .5, width = .6, .width = 0,justification = -.3,
@@ -199,9 +246,8 @@
   }
   
   
-  plot_pop <- function(y) {
-    ggplot(excr.yr, aes(x = Year, y = log10(y),
-                                color = Species.code)) + 
+  plot_pop <- function(df, y) {
+    ggplot(df, aes(x = Year, y = log10(y), colour = Species.code)) + 
       geom_point(size = point.size) +
       geom_line(linewidth = line.width) +
       theme_classic(base_size = 10) +
@@ -212,17 +258,17 @@
   }
   
   # Figure 1 ----
-  Nexcr.sp.p <- plot_sp(excr.sp.sub$masscorr.N.excr) +
+  Nexcr.sp.p <- plot_sp(excr$masscorr.N.excr) +
     xlab('') +
-    theme(axis.text.x = element_blank()) +
+    #theme(axis.text.x = element_blank()) +
     geom_hline(data = excr.ss %>% filter(Variable == 'masscorr.N.excr'), 
                aes(yintercept = log10(Mean)), linetype = 'dashed', 
                linewidth = line.width)
   Nexcr.sp.p
   
-  Pexcr.sp.p <- plot_sp(excr.sp.sub$masscorr.P.excr) +
+  Pexcr.sp.p <- plot_sp(excr$masscorr.P.excr) +
     xlab('') +
-    theme(axis.text.x = element_blank()) +
+    #theme(axis.text.x = element_blank()) +
     ylab(expression(atop(Log[10]~mass-specific, 
                          paste(P~excretion~(μg~P/g/h))))) +
     geom_hline(data = excr.ss %>% filter(Variable == 'masscorr.P.excr'), 
@@ -230,7 +276,7 @@
                linewidth = line.width)
   Pexcr.sp.p
   
-  NPexcr.sp.p <- plot_sp(excr.sp.sub$masscorr.NP.excr) +
+  NPexcr.sp.p <- plot_sp(excr$masscorr.NP.excr) +
     ylab(expression(atop(Log[10]~mass-specific, 
                          paste(N:P~excretion~(molar))))) +
     geom_hline(data = excr.ss %>% filter(Variable == 'masscorr.NP.excr'), 
@@ -244,30 +290,30 @@
             labels = c("(a)", "(b)", "(c)"),
             font.label = list(size = 10), label.x = 0.13, label.y = 1,
             legend = 'right', common.legend = T, align = 'v')
-  ggsave('figures/final-figures/Fig1.tiff', 
-         width = 17, height = 17, units = 'cm', dpi = 600,
+  ggsave('tables_figures/final-tables_figures/Fig1.tiff', 
+         width = 17, height = 20, units = 'cm', dpi = 600,
          compression = 'lzw', bg = 'white')  
   
   # Figure 2 ----
   # ..Season ----
   # N excretion
-  NexcrSeas.p <- plot_season(excr$masscorr.N.excr) +
+  NexcrSeas.p <- plot_season(excr, excr$masscorr.N.excr) +
     labs(x = '',
          y = expression(atop(Log[10]~mass-specific, 
                              paste(N~excretion~(μg~N/g/h))))) +
     theme(axis.text.x = element_blank()) +
     annotate("text", x = 1.5, y = 2.65, label = '*', size = stat.size) +
-    geom_segment(x = 1, xend = 2, y = 2.6, yend = 2.6, 
+    geom_segment(x = 1, xend = 2, y = 2.6, yend = 2.6,
                  linewidth = line.width, colour = 'black') +
-    geom_segment(x = 1, xend = 1, y = 2.6, yend = 2.55, 
+    geom_segment(x = 1, xend = 1, y = 2.6, yend = 2.55,
                  linewidth = line.width, colour = 'black') +
-    geom_segment(x = 2, xend = 2, y = 2.6, yend = 2.55, 
+    geom_segment(x = 2, xend = 2, y = 2.6, yend = 2.55,
                  linewidth = line.width, colour = 'black')
   
   NexcrSeas.p
   
   # P excretion
-  PexcrSeas.p <- plot_season(excr$masscorr.P.excr) +
+  PexcrSeas.p <- plot_season(excr, excr$masscorr.P.excr) +
     labs(x = '',
          y = expression(atop(Log[10]~mass-specific, 
                              paste(P~excretion~(μg~P/g/h))))) +
@@ -275,7 +321,7 @@
   PexcrSeas.p
   
   # N:P excretion
-  NPexcrSeas.p <- plot_season(excr$masscorr.NP.excr) +
+  NPexcrSeas.p <- plot_season(excr, excr$masscorr.NP.excr) +
     labs(x = 'Season',
          y = expression(atop(Log[10]~mass-specific, 
                              paste(N:P~excretion~(molar)))))
@@ -283,7 +329,7 @@
   
   # ..Temperature ----
   # N excretion
-  NexcrTemp.p <- ggplot(lmN.temp.pred, aes(x = Temp, y = pred, 
+  NexcrTemp.p <- ggplot(lmN.temp.pred, aes(x = Temp, y = pred,
                                   color = Season)) +
     geom_point(data = excr, aes(x = Temp, y = log10(masscorr.N.excr)),
                                 size = point.size, alpha = fill.alpha) +
@@ -298,13 +344,13 @@
     theme(axis.text.x = element_blank(),
           axis.text.y = element_blank())
   NexcrTemp.p
-  
+
   # P excretion
-  PexcrTemp.p <- ggplot(excr, aes(x = Temp, y = log10(masscorr.P.excr), 
+  PexcrTemp.p <- ggplot(excr, aes(x = Temp, y = log10(masscorr.P.excr),
                                   color = Season)) +
     geom_point(size = point.size, alpha = fill.alpha) +
-    geom_hline(data = excr.ss %>% filter(Variable == 'masscorr.P.excr'), 
-               aes(yintercept = log10(Mean)), linetype = 'dashed', 
+    geom_hline(data = excr.ss %>% filter(Variable == 'masscorr.P.excr'),
+               aes(yintercept = log10(Mean)), linetype = 'dashed',
                linewidth = line.width) +
     labs(x = '',
          y = '') +
@@ -314,20 +360,20 @@
           axis.text.y = element_blank()) +
     scale_colour_manual(values = Season.colors)
   PexcrTemp.p
-  
+
   # N:P excretion
-  NPexcrTemp.p <- ggplot(excr, aes(x = Temp, y = log10(masscorr.NP.excr), 
+  NPexcrTemp.p <- ggplot(excr, aes(x = Temp, y = log10(masscorr.NP.excr),
                                   color = Season)) +
     geom_point(size = point.size, alpha = fill.alpha) +
-    geom_hline(data = excr.ss %>% filter(Variable == 'masscorr.NP.excr'), 
-               aes(yintercept = log10(Mean)), linetype = 'dashed', 
+    geom_hline(data = excr.ss %>% filter(Variable == 'masscorr.NP.excr'),
+               aes(yintercept = log10(Mean)), linetype = 'dashed',
                linewidth = line.width) +
     labs(x = 'Temperature (°C)',
          y = '') +
     scale_x_continuous(n.breaks = 8) +
     theme_classic(base_size = 10) +
     theme(axis.text.y = element_blank()) +
-    scale_colour_manual(values = Season.colors) 
+    scale_colour_manual(values = Season.colors)
   NPexcrTemp.p
 
   # combine plots ----
@@ -338,7 +384,7 @@
             labels = c("(a)", "(b)", "(c)", "(d)", "(e)", "(f)"),
             font.label = list(size = 10), label.x = 0.25, label.y = 1,
             common.legend = T, legend = 'right', align = 'hv')
-  ggsave('figures/final-figures/Fig2.tiff', 
+  ggsave('tables_figures/final-tables_figures/Fig2.tiff', 
          width = 17, height = 17, units = 'cm', dpi = 600,
          compression = 'lzw', bg = 'white')  
   
@@ -422,90 +468,194 @@
          units = 'cm', dpi = 600, compression = 'lzw', bg = 'white')
   
   # Figure 4 ----
-  PopNexcr.yr.p <- plot_pop(excr.yr$Pop.N.excr)  +
-    labs(x = '',
+  # Fish
+  PopNexcr.f.yr.p <- plot_pop(excr.f.yr, excr.f.yr$Pop.N.excr)  +
+    labs(title = "      Fish",
+         x = '',
          y = expression(atop(Log[10]~population, 
-                             paste(N~excretion~(μg~N/m^2/h)))))
-  PopNexcr.yr.p
+                             paste(N~excretion~(μg~N/m^2/h))))) +
+    theme(plot.title = element_text(face = "bold"))
+  PopNexcr.f.yr.p
   
-  PopPexcr.yr.p <- plot_pop(excr.yr$Pop.P.excr)  +
+  PopPexcr.f.yr.p <- plot_pop(excr.f.yr, excr.f.yr$Pop.P.excr)  +
     labs(x = '',
          y = expression(atop(Log[10]~population, 
-                             paste(P~excretion~μg~P/m^2/h))))
-  PopPexcr.yr.p
+                             paste(P~excretion~μg~P/m^2/h)))) 
+  PopPexcr.f.yr.p
   
-  PopNPexcr.yr.p <- plot_pop(excr.yr$Pop.NP.excr)  +
+  PopNPexcr.f.yr.p <- plot_pop(excr.f.yr, excr.f.yr$Pop.NP.excr)  +
     labs(x = '',
          y = expression(atop(Log[10]~population, 
-                             paste(N:P~excretion~(molar)))))
-  PopNPexcr.yr.p
+                             paste(N:P~excretion~(molar))))) 
+  PopNPexcr.f.yr.p
+  
+  # Dreissenids
+  PopNexcr.dm.yr.p <- plot_pop(excr.dm.yr, excr.dm.yr$Pop.N.excr)  +
+    labs(title = "      Dreissenids",
+         x = '',
+         y = '') +
+    scale_color_manual(values = 'black') +
+    scale_x_continuous(n.breaks = 6) +
+    theme(plot.title = element_text(face = "bold")) 
+  PopNexcr.dm.yr.p
+  
+  PopPexcr.dm.yr.p <- plot_pop(excr.dm.yr, excr.dm.yr$Pop.P.excr)  +
+    labs(x = '',
+         y = '') +
+    scale_color_manual(values = 'black') +
+    scale_x_continuous(n.breaks = 6) 
+  PopPexcr.dm.yr.p
+  
+  PopNPexcr.dm.yr.p <- plot_pop(excr.dm.yr, excr.dm.yr$Pop.NP.excr)  +
+    labs(x = '',
+         y = '') +
+    scale_color_manual(values = 'black') +
+    scale_x_continuous(n.breaks = 6) 
+  PopNPexcr.dm.yr.p
   
   # combine plots ----
-  ggarrange(PopNexcr.yr.p, PopPexcr.yr.p, PopNPexcr.yr.p, nrow = 3, 
-            labels = c("(a)", "(b)", "(c)"),
-            font.label = list(size = 10), label.x = 0.22, label.y = 1,
+  fig4 <- ggarrange(PopNexcr.f.yr.p, PopNexcr.dm.yr.p, 
+            PopPexcr.f.yr.p, PopPexcr.dm.yr.p,
+            PopNPexcr.f.yr.p, PopNPexcr.dm.yr.p,
+            nrow = 3, ncol = 2,
+            labels = c("(a)", "(b)", "(c)", "(d)", "(e)", "(f)"),
+            font.label = list(size = 10), label.x = 0.25, label.y = 1,
             legend = 'right', align = 'v', common.legend = T)
-  ggsave('figures/final-figures/Fig4.tiff', 
-         width = 12, height = 17, units = 'cm', dpi = 600,
+  annotate_figure(fig4, 
+                  bottom = text_grob('Year', size = 10, y = 1))
+  
+  ggsave('tables_figures/final-tables_figures/Fig4.tiff', 
+         width = 17, height = 17, units = 'cm', dpi = 600,
         compression = 'lzw', bg = 'white')  
   
   # Figure 5 ----
-  # P load
+  # Lakewide P load
   Pload.p <- ggplot(excr.load, aes(x = Source, y = Pload, fill = Source)) +
     geom_bar(stat = "identity") +
-    labs(title = "(c) 2019",
+    labs(title = "(d) Lakewide (2019)",
          x = "",
          y = expression(Log[10] ~ P ~ load ~ (tonnes/yr))) +
-    scale_fill_grey(start = 0.8, end = 0) +
-    scale_x_discrete(labels = c('Dreissenid SRP', 'Fish SRP', 
-                                'External SRP', 'External TP')) +
     scale_y_log10(breaks = trans_breaks("log10", function(x) 10^x),
                   labels = trans_format("log10", math_format(10^.x))) +
-    coord_flip() +
+    coord_flip(ylim = c(1, 5*10^5)) +
+    scale_fill_manual(values = c('grey80', 'grey80',
+                                 'grey40', 'grey40',  
+                                 'grey10', 'grey10')) +
     theme_bw(base_size = 10) +
     theme(legend.position = 'none',
+          #axis.text.x = element_blank(),
           plot.title = element_text(face = "bold")) 
   Pload.p
   
-  # Volumetric excretion vs ambient cocnentration
-  Nvol.p <- ggplot(excr.vol, aes(x = Source, y = volN, fill = Source)) +
+  # WB P load 2011-2020 average
+  PloadWB.p <- ggplot(excr.WB.load, aes(x = Source, y = Pload, fill = Source)) +
     geom_bar(stat = "identity") +
-    labs(title = "(a) 2021", 
+    labs(title = "(c) Western basin mean (2011-2020)",
          x = "",
-         y = "N concentration (µg N/L)") +
-    scale_x_discrete(labels = c('Fish TDN', 'Ambient TDN')) +
-    scale_fill_grey(start = 0.8, end = 0) +
+         y = expression(Log[10] ~ P ~ load ~ (tonnes/yr))) +
+    scale_y_log10(breaks = trans_breaks("log10", function(x) 10^x),
+                  labels = trans_format("log10", math_format(10^.x))) +
+    coord_flip(ylim = c(1, 5*10^5)) +
+    scale_fill_manual(values = c('grey80', 'grey80',
+                                 'grey40', 'grey40',  
+                                   'grey10', 'grey10')) +
+    theme_bw(base_size = 10) +
+    theme(legend.position = 'none',
+          plot.title = element_text(face = "bold")) 
+  PloadWB.p
+  
+  # Nutrient turnover time
+  Ntt.p <- ggplot(excr.WB.tt, aes(x = Source, y = N.turnover.time.min)) +
+    geom_bar(stat = "identity", fill = 'grey80', width = .7) +
+    labs(title = "(a) Western basin mean (2011-2020)",
+         x = "",
+         y = "Turnover time (min)") +
+    scale_x_discrete(labels = c('Dreissenid TDN', 'Fish TDN')) +
+    #scale_fill_grey(start = 0.8, end = 0) +
     coord_flip() +
     theme_bw(base_size = 10) +
     theme(legend.position = 'none',
           plot.title = element_text(face = "bold"))
-  Nvol.p
+  Ntt.p
   
-  Pvol.p <- ggplot(excr.vol, aes(x = Source, y = volP, fill = Source)) +
-    geom_bar(stat = "identity") +
-    labs(title = "(b) 2021", 
+  Ptt.p <- ggplot(excr.WB.tt, aes(x = Source, y = P.turnover.time.min)) +
+    geom_bar(stat = "identity", fill = 'grey80', width = .7) +
+    labs(title = "(b) Western basin mean (2011-2020)",
          x = "",
-         y = "P concentration (µg P/L)") +
-    scale_x_discrete(labels = c('Fish TDP', 'Ambient TDP')) +
-    scale_fill_grey(start = 0.8, end = 0) +
+         y = "Turnover time (min)") +
+    scale_x_discrete(labels = c('Dreissenid TDP', 'Fish TDP')) +
+    #scale_fill_grey(start = 0.8, end = 0) +
     coord_flip() +
     theme_bw(base_size = 10) +
     theme(legend.position = 'none',
-          plot.title = element_text(face = "bold")) 
-  Pvol.p
+          plot.title = element_text(face = "bold"))
+  Ptt.p
   
   # combine plots ----
-  fig5 <- (Nvol.p / Pvol.p) | Pload.p
+  #fig5 <- (Nvol.p / Pvol.p) | Pload.p
+  fig5 <- Ntt.p / PloadWB.p | Ptt.p / Pload.p
   fig5
   
-  ggsave('figures/final-figures/Fig5.tiff', 
-         width = 17, height = 8, units = 'cm', dpi = 600, 
-         scaling = 0.7, compression = 'lzw', bg = 'white')   
+  ggsave('tables_figures/final-tables_figures/Fig5.tiff', 
+         width = 15, height = 12, units = 'cm', dpi = 600, 
+        scaling = 0.7, compression = 'lzw', bg = 'white')   
+  
+  # Figure S1 ----
+  # N excretion
+  NexcrSeas.sub.p <- plot_season(excr.seas.sub, excr.seas.sub$masscorr.N.excr) +
+    labs(x = '',
+         y = expression(atop(Log[10]~mass-specific, 
+                             paste(N~excretion~(μg~N/g/h))))) +
+    theme(axis.text.x = element_blank()) +
+    annotate("text", x = 1.5, y = 1.52, label = '*', size = stat.size) +
+    geom_segment(x = 1, xend = 2, y = 1.5, yend = 1.5,
+                 linewidth = line.width, colour = 'black') +
+    geom_segment(x = 1, xend = 1, y = 1.5, yend = 1.48,
+                 linewidth = line.width, colour = 'black') +
+    geom_segment(x = 2, xend = 2, y = 1.5, yend = 1.48,
+                 linewidth = line.width, colour = 'black')
+  
+  NexcrSeas.sub.p
+  
+  # P excretion
+  PexcrSeas.sub.p <- plot_season(excr.seas.sub, excr.seas.sub$masscorr.P.excr) +
+    labs(x = '',
+         y = expression(atop(Log[10]~mass-specific, 
+                             paste(P~excretion~(μg~P/g/h))))) +
+    theme(axis.text.x = element_blank()) +
+    annotate("text", x = 1.5, y = 1.55, label = '**', size = stat.size) +
+    geom_segment(x = 1, xend = 2, y = 1.5, yend = 1.5,
+                 linewidth = line.width, colour = 'black') +
+    geom_segment(x = 1, xend = 1, y = 1.5, yend = 1.45,
+                 linewidth = line.width, colour = 'black') +
+    geom_segment(x = 2, xend = 2, y = 1.5, yend = 1.45,
+                 linewidth = line.width, colour = 'black')
+  PexcrSeas.sub.p
+  
+  # N:P excretion
+  NPexcrSeas.sub.p <- plot_season(excr.seas.sub, excr.seas.sub$masscorr.NP.excr) +
+    labs(x = 'Season',
+         y = expression(atop(Log[10]~mass-specific, 
+                             paste(N:P~excretion~(molar)))))
+  NPexcrSeas.sub.p
+ 
+  # combine plots ----
+  ggarrange(NexcrSeas.sub.p, 
+            PexcrSeas.sub.p, 
+            NPexcrSeas.sub.p, 
+            nrow = 3,
+            labels = c("(a)", "(b)", "(c)"),
+            font.label = list(size = 10), label.x = 0.23, label.y = 1,
+            common.legend = T, legend = 'none', align = 'hv')
+  ggsave('tables_figures/final-tables_figures/FigS1.tiff', 
+         width = 10, height = 17, units = 'cm', dpi = 600,
+         compression = 'lzw', bg = 'white')  
   
   # export final tables ----
-  write_csv(excr.vol, "output/excr_vol.csv")
-  write_csv(excr.load, "output/excr_load.csv")
   write_csv(excr.ss, "output/excr_summary.csv")
-  write_csv(excr.seas.f.ss, "output/excr_summary_fish_season.csv")
-  write_csv(excr.seas.dm.ss, "output/excr_summary_dm_season.csv")
+  write_csv(excr.seas.ss, "output/excr_summary_season.csv")
+  write_csv(excr.sp.ss, "output/excr_summary_sp.csv")
+  write_csv(excr.pop.ss, "output/excr_summary_pop.csv")
+  write_csv(excr.load, "output/excr_load.csv")
+  write_csv(excr.WB.load, "output/excr_WB_load.csv")
   
