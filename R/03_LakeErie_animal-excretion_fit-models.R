@@ -8,8 +8,7 @@
   library(performance) # to compare models
   library(car) # for Anova() function
   library(emmeans) # for posthoc
-  library(lme4) # to add random effect to lm
-  library(afex) # to add random effect to lm + F-test/p-values
+  library(lmerTest) # to add random effect to lm + F-test/p-value
   library(writexl)
 
   # ANOVA ----
@@ -214,21 +213,36 @@
     
     m1 <- lm(log10.y ~ df[[x]], data = df)
     m2 <- lmer(log10.y ~ df[[x]] + (1|Species.code), data = df)
-    m3 <- lmer(log10.y ~ df[[x]] * Season + (1|Species.code), data = df)
+    m3 <- lmer(log10.y ~ df[[x]] + (1 | Season) + (1|Species.code), data = df)
     
     perf <- compare_performance(m1, m2, m3, rank = T)
     return(perf)
   }
   
   # ...N excretion ----
+  # N excretion vs body N
+  perf_si("BodyN", "masscorr.N.excr", excr)
+  Nexcr.bN <- lmer(log10(masscorr.N.excr) ~ BodyN + (1|Species.code), 
+                       data = excr)
+  anova(Nexcr.bN)
+  check_model(Nexcr.bN)
+  # N excretion vs body CN
+  perf_si("BodyCN", "masscorr.N.excr", excr)
+  Nexcr.bCN <- lmer(log10(masscorr.N.excr) ~ BodyCN + (1|Species.code),
+                 data = excr)
+  anova(Nexcr.bCN)
+  check_model(Nexcr.bCN)
+  AIC(Nexcr.bCN)
+  
   # N excretion vs d15N
   perf_si("d15N", "masscorr.N.excr", excr)
   # chose m2 instead of m3 because of collinearity between d15N and Season
   # NexcrSI.15N <- lmer(log10(masscorr.N.excr) ~ d15N + (1|Species.code), 
   #                     data = excr)
-  NexcrSI.15N <- mixed(log10(masscorr.N.excr) ~ d15N + (1|Species.code), 
+  NexcrSI.15N <- lmer(log10(masscorr.N.excr) ~ d15N + (1|Species.code), 
                       data = excr)
-  NexcrSI.15N
+  summary(NexcrSI.15N)
+  anova(NexcrSI.15N)
   NexcrSI.15N <- lm(log10(masscorr.N.excr) ~ d15N * Species.code, 
                       data = excr)
   check_model(NexcrSI.15N)
@@ -240,8 +254,6 @@
   perf_si("d13C", "masscorr.N.excr", excr)
   # chose m2 instead of m3 because of collinearity between d15N and Season
   NexcrSI.13C <- lmer(log10(masscorr.N.excr) ~ d13C + (1|Species.code), 
-                      data = excr)
-  NexcrSI.13C <- mixed(log10(masscorr.N.excr) ~ d13C + (1|Species.code), 
                       data = excr)
   NexcrSI.13C
   check_model(NexcrSI.13C)
@@ -258,9 +270,6 @@
   # chose m2 instead of m3 because of collinearity between d15N and Season
   PexcrSI.15N <- lmer(log10(masscorr.P.excr) ~ d15N + (1|Species.code), 
                       data = excr)
-  PexcrSI.15N <- mixed(log10(masscorr.P.excr) ~ d15N + (1|Species.code), 
-                      data = excr)
-  PexcrSI.15N 
   check_model(PexcrSI.15N)
   summary(PexcrSI.15N)
   
@@ -302,8 +311,34 @@
   Anova(PexcrSI.null, type = 'III')
   AIC(NPexcrSI.15N, NPexcrSI.13C, NPexcrSI.null)
   
-  # make AIC table
-  AIC.tbl <- AIC(NexcrSI.15N, NexcrSI.13C, NexcrSI.null,
+  
+  # make anova table
+  # Define your list of models
+  anova_SI_models <- list(
+    "Mass-specific N excretion (d15N)" = NexcrSI.15N,
+    "Mass-specific N excretion (d13C)" = NexcrSI.13C,
+    "Mass-specific N excretion (N)" = Nexcr.bN,
+    "Mass-specific N excretion (CN)" = Nexcr.bCN,
+    "Mass-specific P excretion (d15N)" = PexcrSI.15N,
+    "Mass-specific P excretion (d13C)" = PexcrSI.13C,
+    "Mass-specific N:P excretion (d15N)" = NPexcrSI.15N,
+    "Mass-specific N:P excretion (d13C)" = NPexcrSI.13C
+  )
+  
+  # Combine ANOVA results into a single data frame
+  combined_anova_SI <- bind_rows(lapply(names(anova_SI_models), function(model_name) {
+    model <- anova_SI_models[[model_name]]
+    anova_result <- rownames_to_column(anova(model), var = "Predictors") %>% as_tibble
+    anova_result$groupname <- model_name
+    anova_result <- anova_result %>%  
+      mutate(Predictors = if_else(Predictors == 'BodyN', 'Tissue N',
+                                          if_else(Predictors == 'BodyCN', 'Tissue C:N',
+                                                  Predictors)))
+    return(anova_result)
+  }))
+  
+  # make AIC table ----
+  AIC.tbl <- AIC(NexcrSI.15N, NexcrSI.13C, Nexcr.bN, Nexcr.bCN, NexcrSI.null,
                  PexcrSI.15N, PexcrSI.13C, PexcrSI.null,
                  NPexcrSI.15N, NPexcrSI.13C, NPexcrSI.null)
   

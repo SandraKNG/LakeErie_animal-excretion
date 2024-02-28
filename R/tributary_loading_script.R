@@ -13,7 +13,7 @@ library(gridExtra)
 library(viridis)
 
 # read in Heidelberg excel xlsx file with rivers in separate sheets 
-excel_file <- "data/HTLP_LakeErie_US_TP_SRP_2024-01-26_105214.xlsx"
+excel_file <- "data/HTLP_HTLP_LakeErie_US_TP_SRP_N_2024-02-23_152308.xlsx"
 
 # get the list of sheet names
 sheet_names <- excel_sheets(excel_file)
@@ -44,7 +44,7 @@ rownames(tributary_df) <- NULL
 names(tributary_df)
 
 colnames <- c("datetime", "discharge_qual", "discharge_cfs","TP_qual", 
-              "TP_mgl", "SRP_qual", "SRP_mgl", "stream")
+              "TP_mgl", "SRP_qual", "SRP_mgl", "TKN_qual", "TKN_mgl", "stream")
 colnames(tributary_df) <- colnames
 
 # tributary_df %>% select(-c("datetime", "qual1", "qual2", "qual3"))
@@ -88,7 +88,8 @@ mean_tributary_df <- data.frame(
   date = discharge_cfs$date,
   discharge_cfs = discharge_cfs$mean,
   TP_mgl = TP_mgl$mean,
-  SRP_mgl = SRP_mgl$mean
+  SRP_mgl = SRP_mgl$mean,
+  TKN_mgl = TKN_mgl$mean
 ) 
 
 # convert cfs to total litres per day
@@ -104,7 +105,8 @@ tributary_daily_loads_mt <- data.frame(
   date = mean_tributary_df$date,
   year = year(mean_tributary_df$date),
   TP_mt = mean_tributary_df$discharge_lpd * mean_tributary_df$TP_mgl / convert_fact_mg_mt,
-  SRP_mt = mean_tributary_df$discharge_lpd * mean_tributary_df$SRP_mgl / convert_fact_mg_mt
+  SRP_mt = mean_tributary_df$discharge_lpd * mean_tributary_df$SRP_mgl / convert_fact_mg_mt,
+  TKN_mt = mean_tributary_df$discharge_lpd * mean_tributary_df$TKN_mgl / convert_fact_mg_mt
 )
 
 write.csv(tributary_daily_loads_mt, "output/tributary_daily_loads_mt.csv", row.names = F)
@@ -112,7 +114,8 @@ write.csv(tributary_daily_loads_mt, "output/tributary_daily_loads_mt.csv", row.n
 # get yearly loads
 tributary_yearly_loads <- tributary_daily_loads_mt %>% 
   reframe(TP_mt = sum(TP_mt, na.rm = T),
-          SRP_mt = sum(SRP_mt, na.rm = T))
+          SRP_mt = sum(SRP_mt, na.rm = T),
+          TKN_mt = sum(TKN_mt, na.rm = T))
 
 write_csv(tributary_yearly_loads, "output/tributary_yearly_loads_mt.csv")
 

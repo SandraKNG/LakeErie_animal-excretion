@@ -25,7 +25,7 @@
   combined_anova_sp <- combined_anova_sp %>%
     mutate(`Pr(>F)` = format_p_value(`Pr(>F)`)) 
   
-  # Table S1 ----
+  # Table S3 ----
   combined_anova_sp %>%  
     gt(groupname_col = "groupname") %>% 
     cols_label(
@@ -54,9 +54,9 @@
         rows = everything()
       )
     ) %>% 
-    gtsave("tables_figures/final-tables_figures/tableS1.rtf")
+    gtsave("tables_figures/final-tables_figures/tableS3.rtf")
   
-  # Table S2 ----
+  # Table S4 ----
   contrasts %>% 
     gt(groupname_col = "test") %>% 
     fmt_number(
@@ -80,9 +80,9 @@
       t.ratio = "t ratio",
       p.value = md("*p*")
     ) %>% 
-    gtsave("tables_figures/final-tables_figures/tableS2.rtf")
+    gtsave("tables_figures/final-tables_figures/tableS4.rtf")
   
-  # Table S3 ----
+  # Table S5 ----
   # Apply custom formatting function to Pr(>F) column
   combined_anova_seas <- combined_anova_seas %>%
     mutate(`Pr(>F)` = format_p_value(`Pr(>F)`)) 
@@ -115,9 +115,9 @@
         rows = everything()
       )
     ) %>% 
-    gtsave("tables_figures/final-tables_figures/tableS3.rtf")
+    gtsave("tables_figures/final-tables_figures/tableS5.rtf")
   
-  # Table S4
+  # Table S6 ----
   # Apply custom formatting function to Pr(>F) column
   combined_anova_sub_seas <- combined_anova_sub_seas %>%
     mutate(`Pr(>F)` = format_p_value(`Pr(>F)`)) 
@@ -150,30 +150,68 @@
         rows = everything()
       )
     ) %>%
-    gtsave("tables_figures/final-tables_figures/tableS4.rtf")
+    gtsave("tables_figures/final-tables_figures/tableS6.rtf")
   
-  # LMER
-  NexcrSI.15N$coefficients
-  tidy(NexcrSI.15N) %>% 
-    gt() %>%
-    gtsave("tables_figures/final-tables_figures/anova_summary.rtf")
+  # Table S8 ----
+  # Apply custom formatting function to Pr(>F) column
+  combined_anova_SI <- combined_anova_SI %>%
+    mutate(`Pr(>F)` = format_p_value(`Pr(>F)`))
+  
+  combined_anova_SI %>%  
+    gt(groupname_col = "groupname") %>% 
+    cols_label(
+      Predictors = "",
+      'NumDF' = md("**Num df**"),
+      'DenDF' = md("**Den df**"),
+      'Sum Sq' = md("**SS**"),
+      'Mean Sq' = md("**MS**"),
+      'F value' = md("**F**"),
+      'Pr(>F)' = md("***p***")
+    ) %>% 
+    cols_align(
+      align = "center",
+      columns = c('NumDF', 'DenDF', 'Sum Sq', 'Mean Sq', 'F value', 'Pr(>F)')
+    ) %>% 
+    fmt_number(
+      columns = c('Sum Sq', 'Mean Sq', 'F value', 'Pr(>F)'),
+      decimals = 3
+    ) %>% 
+    fmt_number(
+      columns = c('DenDF'),
+      decimals = 2
+    ) %>% 
+    tab_style(
+      style = cell_borders(
+        sides = c("top", "bottom"),
+        style = 'hidden'
+      ),
+      locations = cells_body(
+        columns = everything(),
+        rows = everything()
+      )
+    ) %>%
+    gtsave("tables_figures/final-tables_figures/tableS8.rtf")
   
   # Set up prediction data ----
   lmN.temp.pred <- excr %>% tidyr::expand(nesting(Species.code, Season),
                                         Temp = c(seq(min(Temp), max(Temp),
                                                       length = 100),
                                                   rep(median(Temp), 100)))
+  # lmN.bCN.pred <- excr.SI %>% tidyr::expand(nesting(Species.code),
+  #                                          BodyCN = c(seq(min(BodyCN), max(BodyCN),
+  #                                                        length = 100),
+  #                                                    rep(median(BodyCN), 100)))
   
-  # prediction model
-  # lmN.temp.pred <- cbind(lmN.temp.pred, 
-  #                        predict(lmN.temp, lmN.temp.pred, re.form = NA,
-  #                                type = "response")) 
-  
-  # Try the parametric bootstrap method, and make prediction at the population level
-  lmN.temp.pred <- add_ci(lmN.temp.pred, lmN.temp, alpha = 0.5, 
-                          type = "boot", includeRanef = FALSE, nSims = 100) %>% 
+  # Try the parametric bootstrap method, and make predictions with CI
+  lmN.temp.pred <- add_ci(lmN.temp.pred, lmN.temp, alpha = 0.5,
+                          type = "boot", includeRanef = FALSE, nSims = 100) %>%
     rename(lower = LCB0.25,
            upper = UCB0.75)
+  
+  # lmN.bCN.pred <- add_ci(lmN.bCN.pred, Nexcr.bCN, alpha = 0.5, 
+  #                       type = "boot", includeRanef = FALSE, nSims = 100) %>% 
+  #   rename(lower = LCB0.25,
+  #          upper = UCB0.75)
   
   # set up plotting parameters and functions ----
   point.size = 1.5
@@ -463,7 +501,7 @@
             font.label = list(size = 10), 
             label.x = 0.27, label.y = 1.02, common.legend = T,
             legend = 'right', align = 'hv')
-  ggsave('figures/final-figures/Fig3.tiff', 
+  ggsave('tables_figures/final-tables_figures/Fig3.tiff', 
          width = 17, height = 17, 
          units = 'cm', dpi = 600, compression = 'lzw', bg = 'white')
   
@@ -529,41 +567,6 @@
         compression = 'lzw', bg = 'white')  
   
   # Figure 5 ----
-  # Lakewide P load
-  Pload.p <- ggplot(excr.load, aes(x = Source, y = Pload, fill = Source)) +
-    geom_bar(stat = "identity") +
-    labs(title = "(d) Lakewide (2019)",
-         x = "",
-         y = expression(Log[10] ~ P ~ load ~ (tonnes/yr))) +
-    scale_y_log10(breaks = trans_breaks("log10", function(x) 10^x),
-                  labels = trans_format("log10", math_format(10^.x))) +
-    coord_flip(ylim = c(1, 5*10^5)) +
-    scale_fill_manual(values = c('grey80', 'grey80',
-                                 'grey40', 'grey40',  
-                                 'grey10', 'grey10')) +
-    theme_bw(base_size = 10) +
-    theme(legend.position = 'none',
-          #axis.text.x = element_blank(),
-          plot.title = element_text(face = "bold")) 
-  Pload.p
-  
-  # WB P load 2011-2020 average
-  PloadWB.p <- ggplot(excr.WB.load, aes(x = Source, y = Pload, fill = Source)) +
-    geom_bar(stat = "identity") +
-    labs(title = "(c) Western basin mean (2011-2020)",
-         x = "",
-         y = expression(Log[10] ~ P ~ load ~ (tonnes/yr))) +
-    scale_y_log10(breaks = trans_breaks("log10", function(x) 10^x),
-                  labels = trans_format("log10", math_format(10^.x))) +
-    coord_flip(ylim = c(1, 5*10^5)) +
-    scale_fill_manual(values = c('grey80', 'grey80',
-                                 'grey40', 'grey40',  
-                                   'grey10', 'grey10')) +
-    theme_bw(base_size = 10) +
-    theme(legend.position = 'none',
-          plot.title = element_text(face = "bold")) 
-  PloadWB.p
-  
   # Nutrient turnover time
   Ntt.p <- ggplot(excr.WB.tt, aes(x = Source, y = N.turnover.time.min)) +
     geom_bar(stat = "identity", fill = 'grey80', width = .7) +
@@ -590,6 +593,40 @@
     theme(legend.position = 'none',
           plot.title = element_text(face = "bold"))
   Ptt.p
+  # Lakewide P load
+  Pload.p <- ggplot(excr.load, aes(x = Source, y = Pload, fill = Source)) +
+    geom_bar(stat = "identity") +
+    labs(title = "(d) Lakewide (2019)",
+         x = "",
+         y = expression(Log[10] ~ P ~ load ~ (tonnes/yr))) +
+    scale_y_log10(breaks = trans_breaks("log10", function(x) 10^x),
+                  labels = trans_format("log10", math_format(10^.x))) +
+    coord_flip(ylim = c(1, 1*10^5)) +
+    scale_fill_manual(values = c('grey80', 'grey80',
+                                 'grey40', 'grey40',  
+                                 'grey10', 'grey10')) +
+    theme_bw(base_size = 10) +
+    theme(legend.position = 'none',
+          #axis.text.x = element_blank(),
+          plot.title = element_text(face = "bold")) 
+  Pload.p
+  
+  # WB P load 2011-2020 average
+  PloadWB.p <- ggplot(excr.WB.load, aes(x = Source, y = Pload, fill = Source)) +
+    geom_bar(stat = "identity") +
+    labs(title = "(c) Western basin mean (2011-2020)",
+         x = "",
+         y = expression(Log[10] ~ P ~ load ~ (tonnes/yr))) +
+    scale_y_log10(breaks = trans_breaks("log10", function(x) 10^x),
+                  labels = trans_format("log10", math_format(10^.x))) +
+    coord_flip(ylim = c(1, 1*10^5)) +
+    scale_fill_manual(values = c('grey80', 'grey80',
+                                 'grey40', 'grey40',  
+                                   'grey10', 'grey10')) +
+    theme_bw(base_size = 10) +
+    theme(legend.position = 'none',
+          plot.title = element_text(face = "bold")) 
+  PloadWB.p
   
   # combine plots ----
   #fig5 <- (Nvol.p / Pvol.p) | Pload.p
@@ -622,14 +659,14 @@
     labs(x = '',
          y = expression(atop(Log[10]~mass-specific, 
                              paste(P~excretion~(μg~P/g/h))))) +
-    theme(axis.text.x = element_blank()) +
-    annotate("text", x = 1.5, y = 1.55, label = '**', size = stat.size) +
-    geom_segment(x = 1, xend = 2, y = 1.5, yend = 1.5,
-                 linewidth = line.width, colour = 'black') +
-    geom_segment(x = 1, xend = 1, y = 1.5, yend = 1.45,
-                 linewidth = line.width, colour = 'black') +
-    geom_segment(x = 2, xend = 2, y = 1.5, yend = 1.45,
-                 linewidth = line.width, colour = 'black')
+    theme(axis.text.x = element_blank()) #+
+    # annotate("text", x = 1.5, y = 1.55, label = '**', size = stat.size) +
+    # geom_segment(x = 1, xend = 2, y = 1.5, yend = 1.5,
+    #              linewidth = line.width, colour = 'black') +
+    # geom_segment(x = 1, xend = 1, y = 1.5, yend = 1.45,
+    #              linewidth = line.width, colour = 'black') +
+    # geom_segment(x = 2, xend = 2, y = 1.5, yend = 1.45,
+    #              linewidth = line.width, colour = 'black')
   PexcrSeas.sub.p
   
   # N:P excretion
@@ -651,9 +688,53 @@
          width = 10, height = 17, units = 'cm', dpi = 600,
          compression = 'lzw', bg = 'white')  
   
+  # Figure S2 ----
+  # N excretion vs tissue N
+  NexcrbN.p <- plot_si(excr.SI$BodyN, excr.SI$masscorr.N.excr) +
+    labs(x = 'Tissue N (%)',
+         y = expression(atop(Log[10]~"mass-specific", 
+                             paste(N~excretion~"(μg N/g/h)")))) +
+    geom_hline(data = excr.ss %>% filter(Variable == 'masscorr.N.excr'), 
+               aes(yintercept = log10(Mean)), linetype = 'dashed', 
+               linewidth = line.width) 
+  NexcrbN.p
+  
+  # N excretion vs tissue C:N
+  NexcrbCN.p <- ggplot(lmN.bCN.pred, aes(x = BodyCN, y = pred)) +
+    theme_classic(base_size = 10) +
+    labs(x = 'Tissue C:N (molar)',
+         y = '') +
+    geom_point(data = excr.SI, aes(x = BodyCN, y = log10(masscorr.N.excr), 
+                                   colour = Season, shape = Species.code),
+               size = point.size) +
+    geom_ribbon(aes(ymin = lower, ymax = upper), colour = NA, alpha = .2) +
+    geom_line(linewidth = line.width, colour = 'black') +
+    scale_colour_manual(name = 'Season',
+                        labels = Season.labels,
+                        values = Season.colors) +
+    scale_shape_manual(
+      name = 'Species',
+      labels = Species.SI.labels,
+      values = c(3, 13, 8, 23, 11, 15, 17, 16)
+    ) +
+    theme(axis.text.y = element_blank())
+  NexcrbCN.p
+  
+  # combine plots ----
+  ggarrange(NexcrbN.p,
+            NexcrbCN.p,
+            ncol = 2,
+            labels = c("(a)", "(b)"),
+            font.label = list(size = 10), label.x = 0.23, label.y = 1,
+            common.legend = T, legend = 'right', align = 'hv')
+  ggsave('tables_figures/final-tables_figures/FigS2.tiff', 
+         width = 20, height = 8, units = 'cm', dpi = 600,
+         compression = 'lzw', bg = 'white')  
+  
   # export final tables ----
   write_csv(excr.ss, "output/excr_summary.csv")
   write_csv(excr.seas.ss, "output/excr_summary_season.csv")
+  write_csv(excr.taxo.seas.ss, "output/excr_summary_taxo_season.csv")
   write_csv(excr.sp.ss, "output/excr_summary_sp.csv")
   write_csv(excr.pop.ss, "output/excr_summary_pop.csv")
   write_csv(excr.load, "output/excr_load.csv")

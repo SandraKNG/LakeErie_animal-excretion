@@ -196,10 +196,15 @@
       n = n()
     )
   
+  # ..for a stable isotopes dataset ----
+  excr.SI <- excr %>% filter(!is.na(d15N))
+  
   # ..for a yearly dataset ----
   # lakewide fish
   # need to convert biomass from kg/ha to g/m2 (/10^4)
-  # need to convert wet biomass to dry biomass using 0.25 by Vanni et al. (2017)
+  # need to convert fish wet biomass to dry biomass using 0.25 by Vanni et al. (2017)
+  # need to convert dreissenid total wet biomass to ash free dry biomass using 
+  # 0.025 by Karatayev et al. (2022)
   excr.f.yr <- excr %>% 
     filter(Species.code != 'DM') %>% 
     group_by(Species.code, Taxo.rank) %>% 
@@ -247,7 +252,7 @@
     ) %>% 
     left_join(biomass_dm, by = 'Species.code') %>%
     mutate(
-      Biomass.g.m2 = Biomass.g.m2 * 0.25,
+      Biomass.g.m2 = Biomass.g.m2 * 0.025,
       Pop.N.excr = masscorr.N.excr * Biomass.g.m2,
       Pop.P.excr = masscorr.P.excr * Biomass.g.m2,
       Pop.NP.excr = masscorr.NP.excr * Biomass.g.m2,
@@ -279,14 +284,14 @@
         excr.taxo.ss %>% 
           filter(.group == "Taxo.rank=Dreissenid", Variable == "masscorr.N.excr") %>% 
           pull(Mean) * Biomass_g_m2,
-        excr.ss %>% 
+        excr.taxo.ss %>% 
           filter(.group == "Taxo.rank=Fish", Variable == "masscorr.N.excr") %>% 
           pull(Mean) * Biomass_kg_ha,
         NA_real_
       ),
       Pop.N.excr.t = if_else(
         Source == 'Dreissenid SRP', 
-        excr.ss %>% 
+        excr.taxo.ss %>% 
           filter(.group == "Taxo.rank=Dreissenid", Variable == "masscorr.N.excr.t") %>% 
           pull(Mean) * Biomass_g_m2,
         excr.taxo.ss %>% 
@@ -299,7 +304,7 @@
         excr.taxo.ss %>% 
           filter(.group == "Taxo.rank=Dreissenid", Variable == "masscorr.P.excr") %>% 
           pull(Mean) * Biomass_g_m2,
-        excr.ss %>% 
+        excr.taxo.ss %>% 
           filter(.group == "Taxo.rank=Fish", Variable == "masscorr.P.excr") %>% 
           pull(Mean) * Biomass_kg_ha,
         NA_real_
@@ -309,7 +314,7 @@
         excr.taxo.ss %>% 
           filter(.group == "Taxo.rank=Dreissenid", Variable == "masscorr.P.excr.t") %>% 
           pull(Mean) * Biomass_g_m2,
-        excr.ss %>% 
+        excr.taxo.ss %>% 
           filter(.group == "Taxo.rank=Fish", Variable == "masscorr.P.excr.t") %>% 
           pull(Mean) * Biomass_kg_ha,
         NA_real_
@@ -322,8 +327,8 @@
   # convert Lake Erie water volume in km3 to L (x 10^12)
   # for excretion load, convert ug/m2/h to metric ton per annum
   wat.ret.time.h <- 2.6 * 8760
-  Area <- 25700 * 10^6
-  Area.WB <- 5140 * 10^6
+  Area <- 25657 * 10^6
+  Area.WB <- 3284 * 10^6
   lake.vol.L <- 480 * 10^12
   
   excr.WB.tt <- excr_yr_WB %>% 
@@ -444,12 +449,20 @@
              'Mass', 'Temp')) %>% 
     describe_distribution()
   
-  # by taxonomic group (fish vs dreissenid) and season
+  # by season only
   excr.seas.ss <- excr %>% 
+    group_by(Season) %>% 
+    select(c('masscorr.N.excr','masscorr.P.excr', 'masscorr.NP.excr', 
+             'masscorr.N.excr.t','masscorr.P.excr.t', 'masscorr.NP.excr.t',
+             'd15N', 'd13C', 'Mass', 'BodyC', 'BodyN', 'BodyP', 'BodyCN','Temp')) %>% 
+    describe_distribution()
+  
+  # by taxonomic group (fish vs dreissenid) and season
+  excr.taxo.seas.ss <- excr %>% 
     group_by(Taxo.rank, Season) %>% 
     select(c('masscorr.N.excr','masscorr.P.excr', 'masscorr.NP.excr', 
              'masscorr.N.excr.t','masscorr.P.excr.t', 'masscorr.NP.excr.t',
-             'd15N', 'd13C', 'Mass', 'BodyC', 'BodyN', 'BodyP',
+             'd15N', 'd13C', 'Mass', 'BodyC', 'BodyN', 'BodyP', 'BodyCN',
              'Temp', 'AmTDN', 'AmTDP')) %>% 
     describe_distribution()
 
@@ -458,7 +471,7 @@
     group_by(Species.code) %>% 
     select(c('masscorr.N.excr','masscorr.P.excr', 'masscorr.NP.excr',
              'masscorr.N.excr.t','masscorr.P.excr.t', 'masscorr.NP.excr.t',
-             'd15N', 'd13C', 'Mass', 'BodyC', 'BodyN', 'BodyP')) %>% 
+             'd15N', 'd13C', 'Mass', 'BodyC', 'BodyN', 'BodyP', 'BodyCN')) %>% 
     describe_distribution()
   
   # population rates by species
