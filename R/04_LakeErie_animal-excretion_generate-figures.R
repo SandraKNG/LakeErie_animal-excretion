@@ -568,11 +568,11 @@
   
   # Figure 5 ----
   # Nutrient turnover time
-  Ntt.p <- ggplot(excr.WB.tt, aes(x = Source, y = N.turnover.time.min)) +
+  Ntt.p <- ggplot(excr.WB.tt, aes(x = Source, y = N.turnover.time.d)) +
     geom_bar(stat = "identity", fill = 'grey80', width = .7) +
     labs(title = "(a) Western basin mean (2011-2020)",
          x = "",
-         y = "Turnover time (min)") +
+         y = "Turnover time (days)") +
     scale_x_discrete(labels = c('Dreissenid TDN', 'Fish TDN')) +
     #scale_fill_grey(start = 0.8, end = 0) +
     coord_flip() +
@@ -581,11 +581,11 @@
           plot.title = element_text(face = "bold"))
   Ntt.p
   
-  Ptt.p <- ggplot(excr.WB.tt, aes(x = Source, y = P.turnover.time.min)) +
+  Ptt.p <- ggplot(excr.WB.tt, aes(x = Source, y = P.turnover.time.d)) +
     geom_bar(stat = "identity", fill = 'grey80', width = .7) +
     labs(title = "(b) Western basin mean (2011-2020)",
          x = "",
-         y = "Turnover time (min)") +
+         y = "Turnover time (days)") +
     scale_x_discrete(labels = c('Dreissenid TDP', 'Fish TDP')) +
     #scale_fill_grey(start = 0.8, end = 0) +
     coord_flip() +
@@ -593,10 +593,11 @@
     theme(legend.position = 'none',
           plot.title = element_text(face = "bold"))
   Ptt.p
+  
   # Lakewide P load
   Pload.p <- ggplot(excr.load, aes(x = Source, y = Pload, fill = Source)) +
     geom_bar(stat = "identity") +
-    labs(title = "(d) Lakewide (2019)",
+    labs(title = "(d) Lake wide (2019)",
          x = "",
          y = expression(Log[10] ~ P ~ load ~ (tonnes/yr))) +
     scale_y_log10(breaks = trans_breaks("log10", function(x) 10^x),

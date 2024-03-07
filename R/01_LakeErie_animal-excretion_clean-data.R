@@ -344,13 +344,17 @@
       AmTDP = mean(AmTDP, na.rm = T)
     ) 
   
+  # calculate turnover rates by converting ambient TDN/TDP (ug/L)
+  # to areal concentration (mg/m2) by multiplying by mean depth then converting to ug/m2 (x10^3)
   excr.WB.tt <- excr.WB.tt %>%
     cross_join(ambient.WB.tt) %>%
     mutate(
-      N.turnover.time.h = AmTDN / Agg.N.excr.t,
-      P.turnover.time.h = AmTDP / Agg.P.excr.t,
-      N.turnover.time.min = N.turnover.time.h * 60,
-      P.turnover.time.min = P.turnover.time.h * 60
+      AmTDN_m2 = AmTDN * 8.5 * 10^3,
+      AmTDP_m2 = AmTDP * 8.5 * 10^3, 
+      N.turnover.time.h = AmTDN_m2 / Agg.N.excr.t,
+      P.turnover.time.h = AmTDP_m2 / Agg.P.excr.t,
+      N.turnover.time.d = N.turnover.time.h / 24,
+      P.turnover.time.d = P.turnover.time.h / 24
     )
   
   
@@ -435,10 +439,10 @@
   
   # Pop N excr for mussel in my study =  ug/m2/h
   # vs. excretion + egesta Li et al (2021) = 0.0468 - 9 mg/m2/d
-  Li.Pflux <- mean(0.55, 1.87, 0.768, 0.698, 1.6, 9, 0.188, 0.0468)
-  
-  Li.Pflux.ugm2h <- Li.Pflux * 10^3 / 24
-  LiPflux.Ggyr <- Li.Pflux.ugm2h * 8760 * 10^(-15)
+  # Li.Pflux <- mean(0.55, 1.87, 0.768, 0.698, 1.6, 9, 0.188, 0.0468)
+  # 
+  # Li.Pflux.ugm2h <- Li.Pflux * 10^3 / 24
+  # LiPflux.Ggyr <- Li.Pflux.ugm2h * 8760 * 10^(-15)
   
   # ..summary statistics ----
   # overall summary
