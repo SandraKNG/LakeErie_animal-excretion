@@ -333,7 +333,6 @@
          compression = 'lzw', bg = 'white')  
   
   # Figure 2 ----
-  # ..Season ----
   # N excretion
   NexcrSeas.p <- plot_season(excr, excr$masscorr.N.excr) +
     labs(x = '',
@@ -365,65 +364,17 @@
                              paste(N:P~excretion~(molar)))))
   NPexcrSeas.p
   
-  # ..Temperature ----
-  # N excretion
-  NexcrTemp.p <- ggplot(lmN.temp.pred, aes(x = Temp, y = pred,
-                                  color = Season)) +
-    geom_point(data = excr, aes(x = Temp, y = log10(masscorr.N.excr)),
-                                size = point.size, alpha = fill.alpha) +
-    geom_ribbon(aes(ymin = lower, ymax = upper),
-                colour = NA, alpha = .2) +
-    geom_line(linewidth = line.width, colour = 'black') +
-    labs(x = '',
-         y = '') +
-    scale_x_continuous(n.breaks = 8) +
-    scale_colour_manual(values = Season.colors) +
-    theme_classic(base_size = 10) +
-    theme(axis.text.x = element_blank(),
-          axis.text.y = element_blank())
-  NexcrTemp.p
-
-  # P excretion
-  PexcrTemp.p <- ggplot(excr, aes(x = Temp, y = log10(masscorr.P.excr),
-                                  color = Season)) +
-    geom_point(size = point.size, alpha = fill.alpha) +
-    geom_hline(data = excr.ss %>% filter(Variable == 'masscorr.P.excr'),
-               aes(yintercept = log10(Mean)), linetype = 'dashed',
-               linewidth = line.width) +
-    labs(x = '',
-         y = '') +
-    scale_x_continuous(n.breaks = 8) +
-    theme_classic(base_size = 10) +
-    theme(axis.text.x = element_blank(),
-          axis.text.y = element_blank()) +
-    scale_colour_manual(values = Season.colors)
-  PexcrTemp.p
-
-  # N:P excretion
-  NPexcrTemp.p <- ggplot(excr, aes(x = Temp, y = log10(masscorr.NP.excr),
-                                  color = Season)) +
-    geom_point(size = point.size, alpha = fill.alpha) +
-    geom_hline(data = excr.ss %>% filter(Variable == 'masscorr.NP.excr'),
-               aes(yintercept = log10(Mean)), linetype = 'dashed',
-               linewidth = line.width) +
-    labs(x = 'Temperature (°C)',
-         y = '') +
-    scale_x_continuous(n.breaks = 8) +
-    theme_classic(base_size = 10) +
-    theme(axis.text.y = element_blank()) +
-    scale_colour_manual(values = Season.colors)
-  NPexcrTemp.p
-
+  
   # combine plots ----
-  ggarrange(NexcrSeas.p, NexcrTemp.p, 
-            PexcrSeas.p, PexcrTemp.p,
-            NPexcrSeas.p, NPexcrTemp.p,
-            nrow = 3, ncol = 2,
-            labels = c("(a)", "(b)", "(c)", "(d)", "(e)", "(f)"),
+  ggarrange(NexcrSeas.p,
+            PexcrSeas.p, 
+            NPexcrSeas.p,
+            nrow = 3, 
+            labels = c("(a)", "(b)", "(c)"),
             font.label = list(size = 10), label.x = 0.25, label.y = 1,
-            common.legend = T, legend = 'right', align = 'hv')
+            common.legend = T, legend = 'none', align = 'hv')
   ggsave('tables_figures/final-tables_figures/Fig2.tiff', 
-         width = 17, height = 17, units = 'cm', dpi = 600,
+         width = 10, height = 17, units = 'cm', dpi = 600,
          compression = 'lzw', bg = 'white')  
   
   
@@ -433,9 +384,9 @@
     labs(x = '',
          y = expression(atop(Log[10]~"mass-specific", 
                              paste(N~excretion~"(μg N/g/h)")))) +
-    geom_hline(data = excr.ss %>% filter(Variable == 'masscorr.N.excr'), 
-               aes(yintercept = log10(Mean)), linetype = 'dashed', 
-               linewidth = line.width) +
+    # geom_hline(data = excr.ss %>% filter(Variable == 'masscorr.N.excr'), 
+    #            aes(yintercept = log10(Mean)), linetype = 'dashed', 
+    #            linewidth = line.width) +
     theme(axis.text.x = element_blank())
   Nexcr15N.p
   
@@ -443,9 +394,9 @@
   Nexcr13C.p <- plot_si(excr.SI$d13C, excr.SI$masscorr.N.excr) +
     labs(x = '',
          y = '') +
-    geom_hline(data = excr.ss %>% filter(Variable == 'masscorr.N.excr'), 
-               aes(yintercept = log10(Mean)), linetype = 'dashed', 
-               linewidth = line.width) +
+    # geom_hline(data = excr.ss %>% filter(Variable == 'masscorr.N.excr'), 
+    #            aes(yintercept = log10(Mean)), linetype = 'dashed', 
+    #            linewidth = line.width) +
     theme(axis.text.x = element_blank(),
           axis.text.y = element_blank())
   Nexcr13C.p
@@ -455,9 +406,9 @@
     labs(x = '',
          y = expression(atop(Log[10]~"mass-specific", 
                              paste(P~excretion~"(μg P/g/h)")))) +
-    geom_hline(data = excr.ss %>% filter(Variable == 'masscorr.P.excr'), 
-               aes(yintercept = log10(Mean)), linetype = 'dashed', 
-               linewidth = line.width) +
+    # geom_hline(data = excr.ss %>% filter(Variable == 'masscorr.P.excr'), 
+    #            aes(yintercept = log10(Mean)), linetype = 'dashed', 
+    #            linewidth = line.width) +
     theme(axis.text.x = element_blank())
   Pexcr15N.p
   
@@ -465,18 +416,18 @@
   Pexcr13C.p <- plot_si(excr.SI$d13C, excr.SI$masscorr.P.excr) +
     labs(x = '',
          y = '') +
-    geom_hline(data = excr.ss %>% filter(Variable == 'masscorr.P.excr'), 
-               aes(yintercept = log10(Mean)), linetype = 'dashed', 
-               linewidth = line.width) +
+    # geom_hline(data = excr.ss %>% filter(Variable == 'masscorr.P.excr'), 
+    #            aes(yintercept = log10(Mean)), linetype = 'dashed', 
+    #            linewidth = line.width) +
     theme(axis.text.x = element_blank(),
           axis.text.y = element_blank())
   Pexcr13C.p
   
   # N:P excretion vs d15N
   NPexcr15N.p <- plot_si(excr.SI$d15N, excr.SI$masscorr.NP.excr) +
-    geom_hline(data = excr.ss %>% filter(Variable == 'masscorr.NP.excr'), 
-               aes(yintercept = log10(Mean)), linetype = 'dashed', 
-               linewidth = line.width) +
+    # geom_hline(data = excr.ss %>% filter(Variable == 'masscorr.NP.excr'), 
+    #            aes(yintercept = log10(Mean)), linetype = 'dashed', 
+    #            linewidth = line.width) +
     labs(x = expression(δ^{15} * 'N (‰)'),
          y = expression(atop(Log[10]~"mass-specific", 
                              paste(N:P~excretion~"(molar)")))) 
@@ -484,9 +435,9 @@
   
   # N:P excretion vs d13C
   NPexcr13C.p <- plot_si(excr.SI$d13C, excr.SI$masscorr.NP.excr) +
-    geom_hline(data = excr.ss %>% filter(Variable == 'masscorr.NP.excr'), 
-               aes(yintercept = log10(Mean)), linetype = 'dashed', 
-               linewidth = line.width) +
+    # geom_hline(data = excr.ss %>% filter(Variable == 'masscorr.NP.excr'), 
+    #            aes(yintercept = log10(Mean)), linetype = 'dashed', 
+    #            linewidth = line.width) +
     labs(x = expression(δ^{13} * "C (‰)"),
          y = '') +
     theme(axis.text.y = element_blank())
@@ -730,6 +681,67 @@
             common.legend = T, legend = 'right', align = 'hv')
   ggsave('tables_figures/final-tables_figures/FigS2.tiff', 
          width = 20, height = 8, units = 'cm', dpi = 600,
+         compression = 'lzw', bg = 'white')  
+  
+  # Figure S3 ----
+  # N excretion
+  NexcrTemp.p <- ggplot(lmN.temp.pred, aes(x = Temp, y = pred,
+                                           color = Season)) +
+    geom_point(data = excr, aes(x = Temp, y = log10(masscorr.N.excr)),
+               size = point.size, alpha = fill.alpha) +
+    geom_ribbon(aes(ymin = lower, ymax = upper),
+                colour = NA, alpha = .2) +
+    geom_line(linewidth = line.width, colour = 'black') +
+    labs(x = '',
+         y = expression(atop(Log[10]~mass-specific, 
+                             paste(N~excretion~(μg~N/g/h))))) +
+    scale_x_continuous(n.breaks = 8) +
+    scale_colour_manual(values = Season.colors) +
+    theme_classic(base_size = 10) +
+    theme(axis.text.x = element_blank())
+  NexcrTemp.p
+  
+  # P excretion
+  PexcrTemp.p <- ggplot(excr, aes(x = Temp, y = log10(masscorr.P.excr),
+                                  color = Season)) +
+    geom_point(size = point.size, alpha = fill.alpha) +
+    geom_hline(data = excr.ss %>% filter(Variable == 'masscorr.P.excr'),
+               aes(yintercept = log10(Mean)), linetype = 'dashed',
+               linewidth = line.width) +
+    labs(x = '',
+         y = expression(atop(Log[10]~mass-specific, 
+                             paste(P~excretion~(μg~P/g/h))))) +
+    scale_x_continuous(n.breaks = 8) +
+    theme_classic(base_size = 10) +
+    theme(axis.text.x = element_blank()) +
+    scale_colour_manual(values = Season.colors)
+  PexcrTemp.p
+  
+  # N:P excretion
+  NPexcrTemp.p <- ggplot(excr, aes(x = Temp, y = log10(masscorr.NP.excr),
+                                   color = Season)) +
+    geom_point(size = point.size, alpha = fill.alpha) +
+    geom_hline(data = excr.ss %>% filter(Variable == 'masscorr.NP.excr'),
+               aes(yintercept = log10(Mean)), linetype = 'dashed',
+               linewidth = line.width) +
+    labs(x = 'Temperature (°C)',
+         y = expression(atop(Log[10]~mass-specific, 
+                             paste(N:P~excretion~(molar))))) +
+    scale_x_continuous(n.breaks = 8) +
+    theme_classic(base_size = 10) +
+    scale_colour_manual(values = Season.colors)
+  NPexcrTemp.p
+  
+  # combine plots ----
+  ggarrange(NexcrTemp.p, 
+            PexcrTemp.p,
+            NPexcrTemp.p,
+            nrow = 3,
+            labels = c("(a)", "(b)", "(c)"),
+            font.label = list(size = 10), label.x = 0.2, label.y = 1,
+            common.legend = T, legend = 'right', align = 'hv')
+  ggsave('tables_figures/final-tables_figures/FigS3.tiff', 
+         width = 11, height = 17, units = 'cm', dpi = 600,
          compression = 'lzw', bg = 'white')  
   
   # export final tables ----
