@@ -50,10 +50,10 @@
   # ..Figure 2 - Season  ----
   excr.seas.sub <- excr %>%  filter(Species.code %in% c('GS', 'LB'))
   
-  aovN.seas <- lm(log10(masscorr.N.excr) ~ Season * Species.code, data = excr)
+  aovN.seas <- lm(log10(masscorr.N.excr.sp) ~ Season * Species.code, data = excr)
   Anova(aovN.seas)
   check_model(aovN.seas)
-  aovP.seas <- lm(log10(masscorr.P.excr) ~ Season * Species.code, data = excr)
+  aovP.seas <- lm(log10(masscorr.P.excr.sp) ~ Season * Species.code, data = excr)
   Anova(aovP.seas)
   check_model(aovP.seas)
   aovNP.seas <- lm(log10(masscorr.NP.excr) ~ Season * Species.code, data = excr)

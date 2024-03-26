@@ -227,10 +227,10 @@
     mutate(
       Pop.N.excr = masscorr.N.excr * Biomass.g.m2,
       Pop.P.excr = masscorr.P.excr * Biomass.g.m2,
-      Pop.NP.excr = masscorr.NP.excr * Biomass.g.m2,
+      Pop.NP.excr = Pop.N.excr / Pop.P.excr / (31 / 14),
       Pop.N.excr.t = masscorr.N.excr.t * Biomass.g.m2,
       Pop.P.excr.t = masscorr.P.excr.t * Biomass.g.m2,
-      Pop.NP.excr.t = masscorr.NP.excr.t * Biomass.g.m2
+      Pop.NP.excr.t = Pop.N.excr.t / Pop.P.excr.t / (31 / 14)
     ) %>%
     filter(!is.na(Biomass)) 
   
@@ -255,10 +255,10 @@
       Biomass.g.m2 = Biomass.g.m2 * 0.025,
       Pop.N.excr = masscorr.N.excr * Biomass.g.m2,
       Pop.P.excr = masscorr.P.excr * Biomass.g.m2,
-      Pop.NP.excr = masscorr.NP.excr * Biomass.g.m2,
+      Pop.NP.excr = Pop.N.excr / Pop.P.excr / (31 / 14),
       Pop.N.excr.t = masscorr.N.excr.t * Biomass.g.m2,
       Pop.P.excr.t = masscorr.P.excr.t * Biomass.g.m2,
-      Pop.NP.excr.t = masscorr.NP.excr.t * Biomass.g.m2
+      Pop.NP.excr.t = Pop.N.excr.t / Pop.P.excr.t / (31 / 14)
     ) 
   
   # combine
@@ -367,7 +367,7 @@
     mutate(
       Nload = Agg.N.excr * 8760 * Area / 10 ^ 12,
       Pload = Agg.P.excr * 8760 * Area / 10 ^ 12,
-      Source = 'Fish SRP'
+      Source = 'Fish'
     )
   
   excr.DM.load <- excr.dm.yr %>%  filter(Year == 2019) %>%
@@ -380,7 +380,7 @@
       Pload = Agg.P.excr * 8760 * Area / 10 ^ 12,
       Nflux = Agg.N.excr * 8760 * Area * 10^-15,
       Pflux = Agg.P.excr * 8760 * Area * 10^-15,
-      Source = 'Dreissenid SRP'
+      Source = 'Dreissenid'
     )
   
   excr.WB.load <- excr_yr_WB %>% 
@@ -400,8 +400,9 @@
   # TP = 11386 (US) + 1205 (CAN), SRP = 3030 (US) + 351 (CAN)
   # and lakewide TP + TP*33% SRP method (Maccoux et al. 2016)
   ambient.load <- tibble(Pload = c(13544, 4470, 12591, 3381), 
+                         Nload = c(NA, NA, NA, 41900),
                          Source = c('Total TP', 'Total SRP', 
-                                    'Tributary TP', 'Tributary SRP'))
+                                    'Tributary TP', 'Tributary TKN or SRP'))
   
   excr.load <- excr.load %>% 
     bind_rows(excr.DM.load) %>% 
@@ -409,9 +410,9 @@
     mutate(Source = factor(
       Source,
       levels = c(
-        'Dreissenid SRP',
-        'Fish SRP',
-        'Tributary SRP',
+        'Dreissenid',
+        'Fish',
+        'Tributary TKN or SRP',
         'Tributary TP',
         'Total SRP',
         'Total TP'

@@ -256,8 +256,8 @@
     ggplot(df,
           aes(x = Season, y = log10(y), 
               color = Season, fill = Season)) +
-      stat_halfeye(adjust = .5, width = .6, .width = 0,justification = -.3,
-                   alpha = fill.alpha) + 
+      # stat_halfeye(adjust = .5, width = .6, .width = 0,justification = -.3,
+      #              alpha = fill.alpha) + 
       geom_boxplot(width = .25, size = line.width, outlier.shape = NA, alpha = .2) +
       geom_point(size = point.size, alpha = fill.alpha, 
                  position = position_jitter(seed = 1, width = .1)) +
@@ -334,7 +334,7 @@
   
   # Figure 2 ----
   # N excretion
-  NexcrSeas.p <- plot_season(excr, excr$masscorr.N.excr) +
+  NexcrSeas.p <- plot_season(excr.seas, excr$masscorr.N.excr.sp) +
     labs(x = '',
          y = expression(atop(Log[10]~mass-specific, 
                              paste(N~excretion~(μg~N/g/h))))) +
@@ -472,11 +472,11 @@
                              paste(P~excretion~μg~P/m^2/h)))) 
   PopPexcr.f.yr.p
   
-  PopNPexcr.f.yr.p <- plot_pop(excr.f.yr, excr.f.yr$Pop.NP.excr)  +
-    labs(x = '',
-         y = expression(atop(Log[10]~population, 
-                             paste(N:P~excretion~(molar))))) 
-  PopNPexcr.f.yr.p
+  # PopNPexcr.f.yr.p <- plot_pop(excr.f.yr, excr.f.yr$Pop.NP.excr)  +
+  #   labs(x = '',
+  #        y = expression(atop(Log[10]~population, 
+  #                            paste(N:P~excretion~(molar))))) 
+  # PopNPexcr.f.yr.p
   
   # Dreissenids
   PopNexcr.dm.yr.p <- plot_pop(excr.dm.yr, excr.dm.yr$Pop.N.excr)  +
@@ -495,26 +495,26 @@
     scale_x_continuous(n.breaks = 6) 
   PopPexcr.dm.yr.p
   
-  PopNPexcr.dm.yr.p <- plot_pop(excr.dm.yr, excr.dm.yr$Pop.NP.excr)  +
-    labs(x = '',
-         y = '') +
-    scale_color_manual(values = 'black') +
-    scale_x_continuous(n.breaks = 6) 
-  PopNPexcr.dm.yr.p
+  # PopNPexcr.dm.yr.p <- plot_pop(excr.dm.yr, excr.dm.yr$Pop.NP.excr)  +
+  #   labs(x = '',
+  #        y = '') +
+  #   scale_color_manual(values = 'black') +
+  #   scale_x_continuous(n.breaks = 6) 
+  # PopNPexcr.dm.yr.p
   
   # combine plots ----
   fig4 <- ggarrange(PopNexcr.f.yr.p, PopNexcr.dm.yr.p, 
             PopPexcr.f.yr.p, PopPexcr.dm.yr.p,
-            PopNPexcr.f.yr.p, PopNPexcr.dm.yr.p,
-            nrow = 3, ncol = 2,
-            labels = c("(a)", "(b)", "(c)", "(d)", "(e)", "(f)"),
+            #PopNPexcr.f.yr.p, PopNPexcr.dm.yr.p,
+            nrow = 2, ncol = 2,
+            labels = c("(a)", "(b)", "(c)", "(d)"),#, "(e)", "(f)"),
             font.label = list(size = 10), label.x = 0.25, label.y = 1,
             legend = 'right', align = 'v', common.legend = T)
   annotate_figure(fig4, 
                   bottom = text_grob('Year', size = 10, y = 1))
   
   ggsave('tables_figures/final-tables_figures/Fig4.tiff', 
-         width = 17, height = 17, units = 'cm', dpi = 600,
+         width = 17, height = 12, units = 'cm', dpi = 600,
         compression = 'lzw', bg = 'white')  
   
   # Figure 5 ----
@@ -545,6 +545,26 @@
           plot.title = element_text(face = "bold"))
   Ptt.p
   
+  # Lakewide N load
+  Nload.p <- ggplot(excr.load %>% filter(!is.na(Nload)), aes(x = Source, y = Nload, fill = Source)) +
+    geom_bar(stat = "identity") +
+    labs(title = "(c) Lake wide (2019)",
+         x = "",
+         y = expression(Log[10] ~ N ~ load ~ (tonnes/yr))) +
+    scale_y_log10(breaks = trans_breaks("log10", function(x) 10^x),
+                  labels = trans_format("log10", math_format(10^.x))) +
+    coord_flip(ylim = c(1, 1*10^6)) +
+    scale_fill_manual(values = c('grey80', 'grey80',
+                                 'grey40', 'grey40',  
+                                 'grey10', 'grey10')) +
+    scale_x_discrete(labels = c('Dreissenid NH4+', 'Fish NH4+',
+                                'Tributary TKN')) +
+    theme_bw(base_size = 10) +
+    theme(legend.position = 'none',
+          #axis.text.x = element_blank(),
+          plot.title = element_text(face = "bold")) 
+  Nload.p
+  
   # Lakewide P load
   Pload.p <- ggplot(excr.load, aes(x = Source, y = Pload, fill = Source)) +
     geom_bar(stat = "identity") +
@@ -557,6 +577,12 @@
     scale_fill_manual(values = c('grey80', 'grey80',
                                  'grey40', 'grey40',  
                                  'grey10', 'grey10')) +
+    scale_x_discrete(labels = c('Dreissenid SRP',
+                                'Fish SRP',
+                                'Tributary SRP',
+                                'Tributary TP',
+                                'Total SRP',
+                                'Total TP')) +
     theme_bw(base_size = 10) +
     theme(legend.position = 'none',
           #axis.text.x = element_blank(),
@@ -566,7 +592,7 @@
   # WB P load 2011-2020 average
   PloadWB.p <- ggplot(excr.WB.load, aes(x = Source, y = Pload, fill = Source)) +
     geom_bar(stat = "identity") +
-    labs(title = "(c) Western basin mean (2011-2020)",
+    labs(title = "(e) Western basin mean (2011-2020)",
          x = "",
          y = expression(Log[10] ~ P ~ load ~ (tonnes/yr))) +
     scale_y_log10(breaks = trans_breaks("log10", function(x) 10^x),
@@ -582,11 +608,21 @@
   
   # combine plots ----
   #fig5 <- (Nvol.p / Pvol.p) | Pload.p
-  fig5 <- Ntt.p / PloadWB.p | Ptt.p / Pload.p
+  fig5 <- Ntt.p / Nload.p | Ptt.p / Pload.p 
+  fig5
+  fig5 <-  fig5 / PloadWB.p
   fig5
   
+  ggarrange(Ntt.p, Ptt.p, 
+            Nload.p, Pload.p,
+            NA, PloadWB.p,
+            nrow = 3, ncol = 2,
+            #labels = c("(a)", "(b)", "(c)", "(d)"),#, "(e)", "(f)"),
+            font.label = list(size = 10), label.x = 0.25, label.y = 1,
+            legend = 'none', align = 'v')
+  
   ggsave('tables_figures/final-tables_figures/Fig5.tiff', 
-         width = 15, height = 12, units = 'cm', dpi = 600, 
+         width = 15, height = 15, units = 'cm', dpi = 600, 
         scaling = 0.7, compression = 'lzw', bg = 'white')   
   
   # Figure S1 ----
