@@ -74,6 +74,14 @@
       style = cell_text(weight = "bold"),
       locations = cells_column_labels()
     ) %>% 
+    fmt_number(
+      columns = c(ratio, SE, df, lower.CL, upper.CL, t.ratio, p.value),
+      decimals = 2
+    ) %>% 
+    fmt_number(
+      columns = c(df, null),
+      decimals = 0
+    ) %>% 
     cols_label(
       lower.CL = 'lower CI',
       upper.CL = "upper CI",
@@ -93,16 +101,15 @@
       Predictors = "",
       Df = md("**df**"),
       'Sum Sq' = md("**SS**"),
-      'Mean Sq' = md("**MS**"),
       'F value' = md("**F**"),
       'Pr(>F)' = md("***p***")
     ) %>% 
     cols_align(
       align = "center",
-      columns = c(Df, 'Sum Sq', 'Mean Sq', 'F value', 'Pr(>F)')
+      columns = c(Df, 'Sum Sq', 'F value', 'Pr(>F)')
     ) %>% 
     fmt_number(
-      columns = c('Sum Sq', 'Mean Sq', 'F value'),
+      columns = c('Sum Sq', 'F value'),
       decimals = 3
     ) %>% 
     tab_style(
@@ -128,16 +135,15 @@
       Predictors = "",
       Df = md("**df**"),
       'Sum Sq' = md("**SS**"),
-      'Mean Sq' = md("**MS**"),
       'F value' = md("**F**"),
       'Pr(>F)' = md("***p***")
     ) %>% 
     cols_align(
       align = "center",
-      columns = c(Df, 'Sum Sq', 'Mean Sq', 'F value', 'Pr(>F)')
+      columns = c(Df, 'Sum Sq', 'F value', 'Pr(>F)')
     ) %>% 
     fmt_number(
-      columns = c('Sum Sq', 'Mean Sq', 'F value'),
+      columns = c('Sum Sq', 'F value'),
       decimals = 3
     ) %>% 
     tab_style(
@@ -151,6 +157,45 @@
       )
     ) %>%
     gtsave("tables_figures/final-tables_figures/tableS6.rtf")
+  
+  # Table S7 ----
+  combined_anova_temp <- combined_anova_temp %>%
+    mutate(`Pr(>F)` = format_p_value(`Pr(>F)`)) 
+  
+  combined_anova_temp %>%  
+    gt(groupname_col = "groupname") %>% 
+    cols_label(
+      Predictors = "",
+      'NumDF' = md("**Num df**"),
+      'DenDF' = md("**Den df**"),
+      'Sum Sq' = md("**SS**"),
+      'Mean Sq' = md("**MS**"),
+      'F value' = md("**F**"),
+      'Pr(>F)' = md("***p***")
+    ) %>% 
+    cols_align(
+      align = "center",
+      columns = c('NumDF', 'DenDF', 'Sum Sq', 'Mean Sq', 'F value', 'Pr(>F)')
+    ) %>% 
+    fmt_number(
+      columns = c('Sum Sq', 'Mean Sq', 'F value', 'Pr(>F)'),
+      decimals = 3
+    ) %>% 
+    fmt_number(
+      columns = c('DenDF'),
+      decimals = 2
+    ) %>% 
+    tab_style(
+      style = cell_borders(
+        sides = c("top", "bottom"),
+        style = 'hidden'
+      ),
+      locations = cells_body(
+        columns = everything(),
+        rows = everything()
+      )
+    ) %>%
+    gtsave("tables_figures/final-tables_figures/tableS7.rtf")
   
   # Table S8 ----
   # Apply custom formatting function to Pr(>F) column
@@ -218,8 +263,8 @@
   line.width = .5
   stat.size = 3
   fill.alpha = .3
-  Season.labels = c("Summer", "Fall")
-  Season.colors = c("goldenrod2", "#D16103")
+  Sampling.labels = c("First", "Second")
+  Sampling.colors = c("goldenrod2", "#D16103")
   Species.pop.labels <- c('Gizzard shad', 'Logperch',  
                           'Round goby','White perch','Yellow perch')
   Species.labels <- c('Brown bullhead', 'Dreissenid', 'Goldfish', 'Gizzard shad', 
@@ -243,12 +288,12 @@
       scale_x_discrete(labels = Species.labels) +
       theme_classic(base_size = 10) +
       theme(axis.text.x = element_text(angle = 45, hjust = 1.1)) +
-      scale_colour_manual(name = 'Season',
-                          labels = Season.labels,
-                          values = Season.colors) +
-      scale_fill_manual(name = 'Season',
-                        labels = Season.labels,
-                        values = Season.colors)
+      scale_colour_manual(name = 'Sampling',
+                          labels = Sampling.labels,
+                          values = Sampling.colors) +
+      scale_fill_manual(name = 'Sampling',
+                        labels = Sampling.labels,
+                        values = Sampling.colors)
   }
   
   
@@ -256,27 +301,27 @@
     ggplot(df,
           aes(x = Season, y = log10(y), 
               color = Season, fill = Season)) +
-      # stat_halfeye(adjust = .5, width = .6, .width = 0,justification = -.3,
-      #              alpha = fill.alpha) + 
+      stat_halfeye(adjust = .5, width = .6, .width = 0,justification = -.3,
+                   alpha = fill.alpha) +
       geom_boxplot(width = .25, size = line.width, outlier.shape = NA, alpha = .2) +
       geom_point(size = point.size, alpha = fill.alpha, 
                  position = position_jitter(seed = 1, width = .1)) +
       theme_classic(base_size = 10) +
-      scale_x_discrete(labels = c("Summer", "Fall")) +
-      scale_colour_manual(name = 'Season',
-                          labels = Season.labels,
-                          values = Season.colors) +
-      scale_fill_manual(name = 'Season',
-                        labels = Season.labels,
-                        values = Season.colors)
+      scale_x_discrete(labels = c("First", "Second")) +
+      scale_colour_manual(name = 'Sampling',
+                          labels = Sampling.labels,
+                          values = Sampling.colors) +
+      scale_fill_manual(name = 'Sampling',
+                        labels = Sampling.labels,
+                        values = Sampling.colors)
   }
   
   plot_si <- function(x, y) {
     ggplot(excr.SI, aes(x = x, y = log10(y), color = Season)) +
       geom_point(aes(shape = Species.code), size = point.size) +
-      scale_colour_manual(name = 'Season',
-                          labels = Season.labels,
-                          values = Season.colors) +
+      scale_colour_manual(name = 'Sampling',
+                          labels = Sampling.labels,
+                          values = Sampling.colors) +
       scale_shape_manual(name = 'Species',
                          labels = Species.SI.labels,
                          values = c(3, 13, 8, 23, 11, 15, 17, 16)) +
@@ -334,7 +379,7 @@
   
   # Figure 2 ----
   # N excretion
-  NexcrSeas.p <- plot_season(excr.seas, excr$masscorr.N.excr.sp) +
+  NexcrSeas.p <- plot_season(excr, excr$masscorr.N.excr) +
     labs(x = '',
          y = expression(atop(Log[10]~mass-specific, 
                              paste(N~excretion~(μg~N/g/h))))) +
@@ -622,8 +667,8 @@
             legend = 'none', align = 'v')
   
   ggsave('tables_figures/final-tables_figures/Fig5.tiff', 
-         width = 15, height = 15, units = 'cm', dpi = 600, 
-        scaling = 0.7, compression = 'lzw', bg = 'white')   
+         width = 17, height = 17, units = 'cm', dpi = 600, 
+        scaling = 0.8, compression = 'lzw', bg = 'white')   
   
   # Figure S1 ----
   # N excretion
@@ -631,14 +676,7 @@
     labs(x = '',
          y = expression(atop(Log[10]~mass-specific, 
                              paste(N~excretion~(μg~N/g/h))))) +
-    theme(axis.text.x = element_blank()) +
-    annotate("text", x = 1.5, y = 1.52, label = '*', size = stat.size) +
-    geom_segment(x = 1, xend = 2, y = 1.5, yend = 1.5,
-                 linewidth = line.width, colour = 'black') +
-    geom_segment(x = 1, xend = 1, y = 1.5, yend = 1.48,
-                 linewidth = line.width, colour = 'black') +
-    geom_segment(x = 2, xend = 2, y = 1.5, yend = 1.48,
-                 linewidth = line.width, colour = 'black')
+    theme(axis.text.x = element_blank()) 
   
   NexcrSeas.sub.p
   
@@ -681,31 +719,34 @@
   NexcrbN.p <- plot_si(excr.SI$BodyN, excr.SI$masscorr.N.excr) +
     labs(x = 'Tissue N (%)',
          y = expression(atop(Log[10]~"mass-specific", 
-                             paste(N~excretion~"(μg N/g/h)")))) +
-    geom_hline(data = excr.ss %>% filter(Variable == 'masscorr.N.excr'), 
-               aes(yintercept = log10(Mean)), linetype = 'dashed', 
-               linewidth = line.width) 
+                             paste(N~excretion~"(μg N/g/h)")))) #+
+    # geom_hline(data = excr.ss %>% filter(Variable == 'masscorr.N.excr'), 
+    #            aes(yintercept = log10(Mean)), linetype = 'dashed', 
+    #            linewidth = line.width) 
   NexcrbN.p
   
   # N excretion vs tissue C:N
-  NexcrbCN.p <- ggplot(lmN.bCN.pred, aes(x = BodyCN, y = pred)) +
-    theme_classic(base_size = 10) +
+  NexcrbCN.p <- plot_si(excr.SI$BodyN, excr.SI$masscorr.N.excr) +
     labs(x = 'Tissue C:N (molar)',
-         y = '') +
-    geom_point(data = excr.SI, aes(x = BodyCN, y = log10(masscorr.N.excr), 
-                                   colour = Season, shape = Species.code),
-               size = point.size) +
-    geom_ribbon(aes(ymin = lower, ymax = upper), colour = NA, alpha = .2) +
-    geom_line(linewidth = line.width, colour = 'black') +
-    scale_colour_manual(name = 'Season',
-                        labels = Season.labels,
-                        values = Season.colors) +
-    scale_shape_manual(
-      name = 'Species',
-      labels = Species.SI.labels,
-      values = c(3, 13, 8, 23, 11, 15, 17, 16)
-    ) +
-    theme(axis.text.y = element_blank())
+         y = '') 
+  # NexcrbCN.p <- ggplot(lmN.bCN.pred, aes(x = BodyCN, y = pred)) +
+  #   theme_classic(base_size = 10) +
+  #   labs(x = 'Tissue C:N (molar)',
+  #        y = '') +
+  #   geom_point(data = excr.SI, aes(x = BodyCN, y = log10(masscorr.N.excr), 
+  #                                  colour = Season, shape = Species.code),
+  #              size = point.size) #+
+  #   # geom_ribbon(aes(ymin = lower, ymax = upper), colour = NA, alpha = .2) +
+  #   # geom_line(linewidth = line.width, colour = 'black') +
+  #   scale_colour_manual(name = 'Sampling',
+  #                       labels = Sampling.labels,
+  #                       values = Sampling.colors) +
+  #   scale_shape_manual(
+  #     name = 'Species',
+  #     labels = Species.SI.labels,
+  #     values = c(3, 13, 8, 23, 11, 15, 17, 16)
+  #   ) +
+  #   theme(axis.text.y = element_blank())
   NexcrbCN.p
   
   # combine plots ----
@@ -722,19 +763,20 @@
   # Figure S3 ----
   # N excretion
   NexcrTemp.p <- ggplot(lmN.temp.pred, aes(x = Temp, y = pred,
-                                           color = Season)) +
+                                  color = Season)) +
     geom_point(data = excr, aes(x = Temp, y = log10(masscorr.N.excr)),
                size = point.size, alpha = fill.alpha) +
-    geom_ribbon(aes(ymin = lower, ymax = upper),
-                colour = NA, alpha = .2) +
+    geom_ribbon(aes(ymin = lower, ymax = upper), colour = NA, alpha = .2) +
     geom_line(linewidth = line.width, colour = 'black') +
     labs(x = '',
          y = expression(atop(Log[10]~mass-specific, 
                              paste(N~excretion~(μg~N/g/h))))) +
     scale_x_continuous(n.breaks = 8) +
-    scale_colour_manual(values = Season.colors) +
     theme_classic(base_size = 10) +
-    theme(axis.text.x = element_blank())
+    theme(axis.text.x = element_blank()) + 
+    scale_colour_manual(name = 'Sampling',
+                        labels = Sampling.labels,
+                        values = Sampling.colors)
   NexcrTemp.p
   
   # P excretion
@@ -749,8 +791,10 @@
                              paste(P~excretion~(μg~P/g/h))))) +
     scale_x_continuous(n.breaks = 8) +
     theme_classic(base_size = 10) +
-    theme(axis.text.x = element_blank()) +
-    scale_colour_manual(values = Season.colors)
+    theme(axis.text.x = element_blank()) + 
+    scale_colour_manual(name = 'Sampling',
+                        labels = Sampling.labels,
+                        values = Sampling.colors)
   PexcrTemp.p
   
   # N:P excretion
@@ -764,8 +808,10 @@
          y = expression(atop(Log[10]~mass-specific, 
                              paste(N:P~excretion~(molar))))) +
     scale_x_continuous(n.breaks = 8) +
-    theme_classic(base_size = 10) +
-    scale_colour_manual(values = Season.colors)
+    theme_classic(base_size = 10) + 
+    scale_colour_manual(name = 'Sampling',
+                        labels = Sampling.labels,
+                        values = Sampling.colors)
   NPexcrTemp.p
   
   # combine plots ----
@@ -775,7 +821,7 @@
             nrow = 3,
             labels = c("(a)", "(b)", "(c)"),
             font.label = list(size = 10), label.x = 0.2, label.y = 1,
-            common.legend = T, legend = 'right', align = 'hv')
+            common.legend = F, align = 'hv')
   ggsave('tables_figures/final-tables_figures/FigS3.tiff', 
          width = 11, height = 17, units = 'cm', dpi = 600,
          compression = 'lzw', bg = 'white')  

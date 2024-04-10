@@ -14,11 +14,11 @@
   # ANOVA ----
   # ..Figure 1 - Species ----
   aovN.sp <- lm(log10(masscorr.N.excr) ~ Species.code, data = excr)
-  anova(aovN.sp)
+  anova(aovN.sp)=
   aovP.sp <- lm(log10(masscorr.P.excr) ~ Species.code, data = excr)
-  anova(aovP.sp)
+  anova(aovN.sp)
   aovNP.sp <- lm(log10(masscorr.NP.excr) ~ Species.code, data = excr)
-  Anova(aovNP.sp)
+  anova(aovNP.sp)
   
   # # Get column indices between "massnorm.SUVA.excr" and "massnorm.C7.excr"
   # start_col <- which(names(excr.var) == "massnorm.SUVA.excr")
@@ -48,12 +48,11 @@
   # t.test.results
   # 
   # ..Figure 2 - Season  ----
-  excr.seas.sub <- excr %>%  filter(Species.code %in% c('GS', 'LB'))
-  
-  aovN.seas <- lm(log10(masscorr.N.excr.sp) ~ Season * Species.code, data = excr)
+  aovN.seas <- lm(log10(masscorr.N.excr) ~ Season * Species.code, data = excr)
+  anova(aovN.seas)
   Anova(aovN.seas)
   check_model(aovN.seas)
-  aovP.seas <- lm(log10(masscorr.P.excr.sp) ~ Season * Species.code, data = excr)
+  aovP.seas <- lm(log10(masscorr.P.excr) ~ Season * Species.code, data = excr)
   Anova(aovP.seas)
   check_model(aovP.seas)
   aovNP.seas <- lm(log10(masscorr.NP.excr) ~ Season * Species.code, data = excr)
@@ -63,6 +62,8 @@
   vif(aovP.seas)
   
   # ..Figure S1 - Season sub ----
+  excr.seas.sub <- excr %>%  filter(Species.code %in% c('GS', 'LB'))
+  
   aovN.seas.sub <- lm(log10(masscorr.N.excr) ~ Season * Species.code, 
                       data = excr.seas.sub)
   Anova(aovN.seas.sub)
@@ -103,7 +104,7 @@
   combined_anova_seas <- bind_rows(lapply(names(anova_seas_models),
                                           function(model_name) {
     model <- anova_seas_models[[model_name]]
-    anova_result <- rownames_to_column(anova(model),
+    anova_result <- rownames_to_column(Anova(model),
                                        var = "Predictors") %>% as_tibble
     anova_result$groupname <- model_name
     anova_result <- anova_result %>%
@@ -111,8 +112,11 @@
         Predictors = ifelse(
           Predictors == 'Species.code',
           'Species',
-          ifelse(Predictors == 'Season:Species.code', 'Season:Species', Predictors
-          )))
+          ifelse(
+            Predictors == 'Season',
+            'Sampling',
+          ifelse(Predictors == 'Season:Species.code', 'Sampling:Species', Predictors
+          ))))
     return(anova_result)
   }))
   
@@ -127,7 +131,7 @@
                      function(model_name) {
                        model <- anova_seas_models[[model_name]]
                        anova_result <-
-                         rownames_to_column(anova(model),
+                         rownames_to_column(Anova(model),
                                             var = "Predictors") %>% as_tibble
                        anova_result$groupname <-
                          model_name
@@ -137,11 +141,14 @@
                            Predictors == 'Species.code',
                            'Species',
                            ifelse(
+                             Predictors == 'Season',
+                             'Sampling',
+                           ifelse(
                              Predictors == 'Season:Species.code',
-                             'Season:Species',
+                             'Sampling:Species',
                              Predictors
                            )
-                         ))
+                         )))
                        return(anova_result)
                      }))
   
@@ -189,20 +196,39 @@
   lmN.temp <- lm(log10(masscorr.N.excr) ~ Temp * Species.code, data = excr)
   check_model(lmN.temp)
   AIC(lmN.temp, lmN.temp2)
-  Anova(lmN.temp)
+  anova(lmN.temp)
   summary(lmN.temp)
   
   lmP.temp <- lmer(log10(masscorr.P.excr) ~ Temp + (1|Species.code), data = excr)
   lmP.temp2 <- lm(log10(masscorr.P.excr) ~ Temp, data = excr)
   check_model(lmP.temp)
   AIC(lmP.temp, lmP.temp2)
-  Anova(lmP.temp)
+  anova(lmP.temp)
   
   lmNP.temp <- lmer(log10(masscorr.NP.excr) ~ Temp + (1|Species.code), data = excr)
   lmNP.temp2 <- lm(log10(masscorr.NP.excr) ~ Temp, data = excr)
   check_model(lmNP.temp)
   AIC(lmNP.temp, lmNP.temp2)
-  Anova(lmNP.temp)
+  anova(lmNP.temp)
+  
+  # Define your list of models
+  anova_temp_models <- list(
+    "Mass-specific N excretion" = lmN.temp,
+    "Mass-specific P excretion" = lmP.temp,
+    "Mass-specific N:P excretion" = lmNP.temp
+  )
+  
+  # Combine ANOVA results into a single data frame
+  combined_anova_temp <- bind_rows(lapply(names(anova_temp_models), function(model_name) {
+    model <- anova_temp_models[[model_name]]
+    anova_result <- rownames_to_column(anova(model), var = "Predictors") %>% as_tibble
+    anova_result$groupname <- model_name
+    # anova_result <- anova_result %>%  
+    #   mutate(Predictors = if_else(Predictors == 'BodyN', 'Tissue N',
+    #                               if_else(Predictors == 'BodyCN', 'Tissue C:N',
+    #                                       Predictors)))
+    return(anova_result)
+  }))
   
   # ..Figure 2 - stable isotopes ----
   
@@ -312,7 +338,7 @@
   AIC(NPexcrSI.15N, NPexcrSI.13C, NPexcrSI.null)
   
   
-  # make anova table
+  # make anova table ----
   # Define your list of models
   anova_SI_models <- list(
     "Mass-specific N excretion (d15N)" = NexcrSI.15N,
