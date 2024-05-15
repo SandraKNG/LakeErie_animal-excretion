@@ -14,7 +14,9 @@
   # ANOVA ----
   # ..Figure 1 - Species ----
   aovN.sp <- lm(log10(masscorr.N.excr) ~ Species.code, data = excr)
-  anova(aovN.sp)=
+  aovN.sp <- kruskal.test(log10(masscorr.N.excr) ~ Species.code, data = excr)
+  aovN.sp
+  anova(aovN.sp)
   aovP.sp <- lm(log10(masscorr.P.excr) ~ Species.code, data = excr)
   anova(aovN.sp)
   aovNP.sp <- lm(log10(masscorr.NP.excr) ~ Species.code, data = excr)

@@ -404,7 +404,7 @@
   
   # N:P excretion
   NPexcrSeas.p <- plot_season(excr, excr$masscorr.NP.excr) +
-    labs(x = 'Season',
+    labs(x = 'Sampling',
          y = expression(atop(Log[10]~mass-specific, 
                              paste(N:P~excretion~(molar)))))
   NPexcrSeas.p
@@ -697,7 +697,7 @@
   
   # N:P excretion
   NPexcrSeas.sub.p <- plot_season(excr.seas.sub, excr.seas.sub$masscorr.NP.excr) +
-    labs(x = 'Season',
+    labs(x = 'Sampling',
          y = expression(atop(Log[10]~mass-specific, 
                              paste(N:P~excretion~(molar)))))
   NPexcrSeas.sub.p
@@ -726,7 +726,7 @@
   NexcrbN.p
   
   # N excretion vs tissue C:N
-  NexcrbCN.p <- plot_si(excr.SI$BodyN, excr.SI$masscorr.N.excr) +
+  NexcrbCN.p <- plot_si(excr.SI$BodyCN, excr.SI$masscorr.N.excr) +
     labs(x = 'Tissue C:N (molar)',
          y = '') 
   # NexcrbCN.p <- ggplot(lmN.bCN.pred, aes(x = BodyCN, y = pred)) +

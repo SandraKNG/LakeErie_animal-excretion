@@ -12,17 +12,12 @@
   library(rstatix)
   
   # check for outliers ----
-<<<<<<< HEAD
-<<<<<<< HEAD
   ggboxplot(excr, "Season", "masscorr.N.excr", color = 'Species.code',
             palette = 'viridis') 
   outliers <- excr %>% 
     select(c(masscorr.N.excr, Season, Species.code)) %>% 
     group_by(Season) %>% 
     identify_outliers(masscorr.N.excr)
-=======
-=======
->>>>>>> 561e07aec1796006abeee7626848271440840a25
   ggboxplot(excr, "Season", "massnorm.N.excr", color = 'Species.code',
             palette = 'viridis') 
   excr %>% 
@@ -32,27 +27,24 @@
   
   # normality check
   # Build the linear model
-  model  <- lm(log10(massnorm.C.excr) ~ DOC.level, data = excr.aov)
+  #model  <- lm(log10(massnorm.C.excr) ~ DOC.level, data = excr.aov)
   # Create a QQ plot of residuals
-  ggqqplot(residuals(model))
+  ggqqplot(residuals(aovN.sp))
   
   # Compute Shapiro-Wilk test of normality
-  shapiro_test(residuals(model))
+  shapiro_test(residuals(aovN.sp))
   
   # QQ plot for each group level
-  ggqqplot(excr.aov, 'massnorm.C.excr', facet.by = 'DOC.level')
+  ggqqplot(aovN.sp, 'masscorr.N.excr', facet.by = 'Species.code')
   
   # check homogeneity of variances
-  excr.aov %>% levene_test(massnorm.C.excr ~ DOC.level)
-<<<<<<< HEAD
->>>>>>> 561e07aec1796006abeee7626848271440840a25
-=======
->>>>>>> 561e07aec1796006abeee7626848271440840a25
+  aovN.sp %>% levene_test(masscorr.N.excr ~ Species.code)
   
   # Individual excretion rate ----
   species <- c('Brown Bullhead', 'Goldfish', 'Gizzard shad', 'Largemouth bass', 
                'Logperch', 'Northern Pike', 'Quagga mussel', 'Round goby', 
                'Walleye', 'White perch', 'Yellow bullhead', 'Yellow perch')
+  
   # ..N excretion rate vs species ----
   NexcrSp.p <- ggplot(excr%>%  filter(Log10.mass > -2.328827),
                       aes(x = Species.code, y = Log10.massnorm.N.excr)) +
@@ -544,3 +536,7 @@
           legend.key.width = unit(3, 'lines'),
           legend.position = 'right')
   PopPexcr.yr.p 
+  
+  ggplot(er %>% filter(`N excretion rate (ug/h/ind)` < 0), aes(`Ind. wet.dry mass (g)`, `N excretion rate (ug/h/ind)`)) +
+    geom_point()
+  
