@@ -33,13 +33,13 @@
            BodyNP = `N:P`,
            Temp = `Incub. Temperature`,
            AmTDN = `TDN (ug/L)...40`,
-           AmTDP = `TDP (ug/L)...39`) %>% 
+           AmTDP = `TDP (ug/L)...39`) %>%  
     filter(P.excretion.rate > 0,
            P.excretion.rate.t > 0,
            !Species.code %in% c('NP', 'WE')) %>% 
     dplyr::mutate(
       Season = fct_relevel(Season, 'S', 'F'),
-      Species.code = if_else(Species.code == 'QM', 'DM', Species.code),
+      Species.code = factor(if_else(Species.code == 'QM', 'DM', Species.code)),
       Taxo.rank = if_else(Species.code == 'DM', 'Dreissenid', 'Fish')) %>%  
     filter(
       !(Species.code %in% c("CTL1","CTL2","CTL3","CTL4","CTL5","CTL6"))
@@ -47,8 +47,7 @@
   
   biomass_f <- bms_f %>% 
     rename(Biomass = `Biomass (kg/ha)`,
-           Species.code = 'Species code') #%>% 
-    # mutate(Species.code = if_else(Species.code == 'QM', 'DM', Species.code))
+           Species.code = 'Species code') 
   
   biomass_WB <- bms_WB %>% 
     rename(Biomass_kg_ha = `Biomass (kg/ha)`,
@@ -57,32 +56,6 @@
   biomass_dm <- bms_dm %>% 
     rename(Biomass.g.m2 = `Biomass (g/m2)`) %>% 
     select(-`Ref: 500 g/m2 = 3.6cm`)
-  
-  # plot log10 P excretion rate vs log10 mass ----
-  ggplot(excr, 
-         aes(x = log10(Mass), y = log10(N.excretion.rate))) +
-    geom_point(aes(colour = Species.code), size = 2) +
-    theme_classic(base_size = 17)
-  ggplot(excr, 
-         aes(x = log10(Mass), y = log10(P.excretion.rate))) +
-    geom_point(aes(colour = Species.code), size = 2) +
-    theme_classic(base_size = 17)
-  # vert
-  # ggplot(excr %>% filter(Species.code != 'DM'), 
-  #        aes(x = Log10.mass, y = Log10.P.excretion.rate)) +
-  #   geom_point()
-  # ggplot(excr %>% filter(Species.code == 'LP'), 
-  #        aes(x = Log10.mass, y = Log10.P.excretion.rate)) +
-  #   geom_point()
-  # ggplot(excr %>% filter(Species.code == 'LB'), 
-  #        aes(x = Log10.mass, y = Log10.P.excretion.rate)) +
-  #   geom_point()
-  # ggplot(excr %>% filter(Species.code == 'YB'), 
-  #        aes(x = Log10.mass, y = Log10.P.excretion.rate)) +
-  #   geom_point()
-  # ggplot(excr %>% filter(Species.code != 'QM'), 
-  #        aes(x = Log10.mass, y = Log10.N.excretion.rate)) +
-  #   geom_point()
   
   # get coeff of variation ----
   # verts animals without DM - SRP and NH4
@@ -101,69 +74,6 @@
                    data = excr %>% filter(Species.code != 'QM'))
   verts.Ncoeff.t <- verts.Nm$coefficients["log10(Mass)"]
   
-  # invert
-  # ggplot(excr %>% filter(Species.code == 'QM'),
-  #        #Log10.mass > -2.328827), 
-  #        aes(x = log10(Mass), y = log10(P.excretion.rate))) +
-  #   geom_point()
-  # ggplot(excr %>% filter(Species.code == 'QM'), 
-  #        aes(x = Log10.mass, y = Log10.N.excretion.rate.t)) +
-  #   geom_point()
-  # 
-  # inverts.Pm <- lm(Log10.P.excretion.rate.t ~ Log10.mass, 
-  #                  data = excr %>% filter(Species.code == 'QM'))
-  # #Log10.P.excretion.rate.t < -0.6))
-  # inverts.Pcoeff <- inverts.Pm$coefficients["Log10.mass"]
-  # inverts.Nm <- lm(Log10.N.excretion.rate.t ~ Log10.mass, 
-  #                  data = excr %>% filter(Species.code == 'QM'))
-  # #Log10.P.excretion.rate < -0.6))
-  # inverts.Ncoeff <- inverts.Nm$coefficients["Log10.mass"]
-  
-  # # ..SP: Sort observations by species ----
-  # obs.spsummary <- excr %>% 
-  #   group_by(Species.code) %>% 
-  #   tally() %>% 
-  #   # Now arrange by smallest number of observations to largest
-  #   arrange(n)
-  # 
-  # head(obs.spsummary)
-  # 
-  # # let's take only species with 3 or more observations and carry on.
-  # # Here I create a new data.frame that only has species with 10 or more observations. 
-  # newdf.sp <- obs.spsummary %>% 
-  #   filter(n > 3) %>% 
-  #   left_join(excr, by = "Species.code") %>% 
-  #   select(-10)
-  # 
-  # # Now get unique species in this new df
-  # 
-  # # ....scaling exponent b for each species for N/P excretions ----
-  # # what are the unique species
-  # species <- unique(newdf.sp$Species.code)
-  # nb.species <- length(species)
-  # 
-  # results.spdf <- data.frame() # Erica: I made an empty dataframe to put results into
-  # 
-  # for (i in 1:nb.species) {
-  #   subdf <- newdf.sp %>% 
-  #     filter(Species.code == species[i]) # equivalent to 'Species X'
-  #   subdf
-  #   
-  #   subdf %>% 
-  #     select(N.excretion.rate, 
-  #            P.excretion.rate, Mass) 
-  # 
-  #   modelN <- lm(log10(N.excretion.rate)~log10(Mass), data = subdf)
-  #   modelP <- lm(log10(P.excretion.rate)~log10(Mass), data = subdf)
-  #   result <- data.frame(Species.code = species[i],
-  #                        b.coeff.N.excr.sp = modelN$coefficients["log10(Mass)"],
-  #                        b.coeff.P.excr.sp = modelP$coefficients["log10(Mass)"],
-  #                        stringsAsFactors = FALSE)
-  #   results.spdf <- bind_rows(results.spdf, result)
-  #   cat(species[i], '\n') # to check where are in loop
-  # }
-  # results.spdf # Here are all of your results in one data.frame. You can use "left_join" to join it to another data.frame if you want to further down in the code.
-  # excr <- left_join(excr, results.spdf, by = "Species.code")
   
   # ..do mass-normalized excretion rates calculations ----
   excr <- excr %>% mutate(
@@ -178,7 +88,10 @@
     massnorm.NP.excr.t = (massnorm.N.excr.t / massnorm.P.excr.t) / (31 / 14),
     masscorr.N.excr.t = N.excretion.rate.t / Mass,
     masscorr.P.excr.t = P.excretion.rate.t / Mass,
-    masscorr.NP.excr.t = (masscorr.N.excr.t / masscorr.P.excr.t) / (31 / 14)
+    masscorr.NP.excr.t = (masscorr.N.excr.t / masscorr.P.excr.t) / (31 / 14),
+    log10.masscorr.N.excr = log10(masscorr.N.excr),
+    log10.masscorr.P.excr = log10(masscorr.P.excr),
+    log10.masscorr.NP.excr = log10(masscorr.NP.excr)
   )
   
   # make excr dataset with one entry for each excretion average ----
@@ -387,9 +300,7 @@
     group_by(Source) %>% 
     reframe(
       Agg.N.excr = mean(Pop.N.excr, na.rm = TRUE),
-      Agg.P.excr = mean(Pop.P.excr, na.rm = TRUE),
-      # Agg.N.excr.t = mean(Pop.N.excr.t, na.rm = TRUE),
-      # Agg.P.excr.t = mean(Pop.P.excr.t, na.rm = TRUE),
+      Agg.P.excr = mean(Pop.P.excr, na.rm = TRUE)
     ) %>% 
     mutate(
       Nload = Agg.N.excr * 8760 * Area.WB / 10 ^ 12,
@@ -437,14 +348,7 @@
         'Total TP'
       )
     ))
-  
-  # Pop N excr for mussel in my study =  ug/m2/h
-  # vs. excretion + egesta Li et al (2021) = 0.0468 - 9 mg/m2/d
-  # Li.Pflux <- mean(0.55, 1.87, 0.768, 0.698, 1.6, 9, 0.188, 0.0468)
-  # 
-  # Li.Pflux.ugm2h <- Li.Pflux * 10^3 / 24
-  # LiPflux.Ggyr <- Li.Pflux.ugm2h * 8760 * 10^(-15)
-  
+
   # ..summary statistics ----
   # overall summary
   excr.ss <- excr %>% 

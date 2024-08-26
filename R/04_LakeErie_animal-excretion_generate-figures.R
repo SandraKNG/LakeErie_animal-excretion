@@ -21,29 +21,27 @@
     ifelse(x < 0.001, "< 0.001", sprintf("%.3f", x))
   }
   
-  # Apply custom formatting function to Pr(>F) column
-  combined_anova_sp <- combined_anova_sp %>%
-    mutate(`Pr(>F)` = format_p_value(`Pr(>F)`)) 
-  
   # Table S3 ----
-  combined_anova_sp %>%  
-    gt(groupname_col = "groupname") %>% 
+  combined_kruskal_sp <- combined_kruskal_sp %>% 
+    mutate(p = format_p_value(p))
+  
+  combined_kruskal_sp %>%
+    gt(groupname_col = "model") %>%
     cols_label(
       Predictors = "",
-      Df = md("**df**"),
-      'Sum Sq' = md("**SS**"),
-      'Mean Sq' = md("**MS**"),
-      'F value' = md("**F**"),
-      'Pr(>F)' = md("***p***")
-    ) %>% 
+      n = md("**n**"),
+      df = md("**df**"),
+      statistic = md("**statistic**"),
+      p = md("***p***")
+    ) %>%
     cols_align(
       align = "center",
-      columns = c(Df, 'Sum Sq', 'Mean Sq', 'F value', 'Pr(>F)')
-    ) %>% 
+      columns = -Predictors
+    ) %>%
     fmt_number(
-      columns = c('Sum Sq', 'Mean Sq', 'F value'),
+      columns = c('statistic'),
       decimals = 3
-    )  %>% 
+    )  %>%
     tab_style(
       style = cell_borders(
         sides = c("top", "bottom"),
@@ -53,65 +51,31 @@
         columns = everything(),
         rows = everything()
       )
-    ) %>% 
+    ) %>%
     gtsave("tables_figures/final-tables_figures/tableS3.rtf")
   
   # Table S4 ----
-  contrasts %>% 
-    gt(groupname_col = "test") %>% 
-    fmt_number(
-      columns = everything(),
-      decimals = 3
-    ) %>% 
-    cols_align(
-      align = "center"
-    ) %>% 
-    cols_align(
-      align = "left",
-      columns = contrast
-    ) %>% 
-    tab_style(
-      style = cell_text(weight = "bold"),
-      locations = cells_column_labels()
-    ) %>% 
-    fmt_number(
-      columns = c(ratio, SE, df, lower.CL, upper.CL, t.ratio, p.value),
-      decimals = 2
-    ) %>% 
-    fmt_number(
-      columns = c(df, null),
-      decimals = 0
-    ) %>% 
-    cols_label(
-      lower.CL = 'lower CI',
-      upper.CL = "upper CI",
-      t.ratio = "t ratio",
-      p.value = md("*p*")
-    ) %>% 
-    gtsave("tables_figures/final-tables_figures/tableS4.rtf")
+  combined_dunn_sp <- combined_dunn_sp %>% 
+    mutate(p.adj = format_p_value(p.adj))
   
-  # Table S5 ----
-  # Apply custom formatting function to Pr(>F) column
-  combined_anova_seas <- combined_anova_seas %>%
-    mutate(`Pr(>F)` = format_p_value(`Pr(>F)`)) 
-  
-  combined_anova_seas %>%  
-    gt(groupname_col = "groupname") %>% 
+  combined_dunn_sp %>%
+    gt(groupname_col = "model") %>%
     cols_label(
-      Predictors = "",
-      Df = md("**df**"),
-      'Sum Sq' = md("**SS**"),
-      'F value' = md("**F**"),
-      'Pr(>F)' = md("***p***")
-    ) %>% 
+      group1 = md("**group1**"),
+      group2 = md("**group2**"),
+      n1 = md("**n1**"),
+      n2 = md("**n2**"),
+      statistic = md("**statistic**"),
+      p.adj = md("***p.adj***")
+    ) %>%
     cols_align(
       align = "center",
-      columns = c(Df, 'Sum Sq', 'F value', 'Pr(>F)')
-    ) %>% 
+      columns = everything()
+    ) %>%
     fmt_number(
-      columns = c('Sum Sq', 'F value'),
+      columns = c('statistic'),
       decimals = 3
-    ) %>% 
+    )  %>%
     tab_style(
       style = cell_borders(
         sides = c("top", "bottom"),
@@ -121,31 +85,63 @@
         columns = everything(),
         rows = everything()
       )
-    ) %>% 
+    ) %>%
+    gtsave("tables_figures/final-tables_figures/tableS4.rtf")
+  
+  # Table S5 ----
+  combined_kruskal_seas <- combined_kruskal_seas %>%
+    mutate(p = format_p_value(p))
+  
+  combined_kruskal_seas %>%
+    gt(groupname_col = "model") %>%
+    cols_label(
+      Predictors = "",
+      n = md("**n**"),
+      df = md("**df**"),
+      statistic = md("**statistic**"),
+      p = md("***p***")
+    ) %>%
+    cols_align(
+      align = "center",
+      columns = -Predictors
+    ) %>%
+    fmt_number(
+      columns = c('statistic'),
+      decimals = 3
+    )  %>%
+    tab_style(
+      style = cell_borders(
+        sides = c("top", "bottom"),
+        style = 'hidden'
+      ),
+      locations = cells_body(
+        columns = everything(),
+        rows = everything()
+      )
+    ) %>%
     gtsave("tables_figures/final-tables_figures/tableS5.rtf")
   
   # Table S6 ----
-  # Apply custom formatting function to Pr(>F) column
-  combined_anova_sub_seas <- combined_anova_sub_seas %>%
-    mutate(`Pr(>F)` = format_p_value(`Pr(>F)`)) 
+  combined_kruskal_seas_sub <- combined_kruskal_seas_sub %>%
+    mutate(p = format_p_value(p))
   
-  combined_anova_sub_seas %>%  
-    gt(groupname_col = "groupname") %>% 
+  combined_kruskal_seas_sub %>%
+    gt(groupname_col = "model") %>%
     cols_label(
       Predictors = "",
-      Df = md("**df**"),
-      'Sum Sq' = md("**SS**"),
-      'F value' = md("**F**"),
-      'Pr(>F)' = md("***p***")
-    ) %>% 
+      n = md("**n**"),
+      df = md("**df**"),
+      statistic = md("**statistic**"),
+      p = md("***p***")
+    ) %>%
     cols_align(
       align = "center",
-      columns = c(Df, 'Sum Sq', 'F value', 'Pr(>F)')
-    ) %>% 
+      columns = -Predictors
+    ) %>%
     fmt_number(
-      columns = c('Sum Sq', 'F value'),
+      columns = c('statistic'),
       decimals = 3
-    ) %>% 
+    )  %>%
     tab_style(
       style = cell_borders(
         sides = c("top", "bottom"),
@@ -198,7 +194,6 @@
     gtsave("tables_figures/final-tables_figures/tableS7.rtf")
   
   # Table S8 ----
-  # Apply custom formatting function to Pr(>F) column
   combined_anova_SI <- combined_anova_SI %>%
     mutate(`Pr(>F)` = format_p_value(`Pr(>F)`))
   
@@ -242,22 +237,13 @@
                                         Temp = c(seq(min(Temp), max(Temp),
                                                       length = 100),
                                                   rep(median(Temp), 100)))
-  # lmN.bCN.pred <- excr.SI %>% tidyr::expand(nesting(Species.code),
-  #                                          BodyCN = c(seq(min(BodyCN), max(BodyCN),
-  #                                                        length = 100),
-  #                                                    rep(median(BodyCN), 100)))
   
   # Try the parametric bootstrap method, and make predictions with CI
   lmN.temp.pred <- add_ci(lmN.temp.pred, lmN.temp, alpha = 0.5,
                           type = "boot", includeRanef = FALSE, nSims = 100) %>%
     rename(lower = LCB0.25,
            upper = UCB0.75)
-  
-  # lmN.bCN.pred <- add_ci(lmN.bCN.pred, Nexcr.bCN, alpha = 0.5, 
-  #                       type = "boot", includeRanef = FALSE, nSims = 100) %>% 
-  #   rename(lower = LCB0.25,
-  #          upper = UCB0.75)
-  
+ 
   # set up plotting parameters and functions ----
   point.size = 1.5
   line.width = .5
@@ -351,7 +337,6 @@
   
   Pexcr.sp.p <- plot_sp(excr$masscorr.P.excr) +
     xlab('') +
-    #theme(axis.text.x = element_blank()) +
     ylab(expression(atop(Log[10]~mass-specific, 
                          paste(P~excretion~(μg~P/g/h))))) +
     geom_hline(data = excr.ss %>% filter(Variable == 'masscorr.P.excr'), 
@@ -399,7 +384,14 @@
     labs(x = '',
          y = expression(atop(Log[10]~mass-specific, 
                              paste(P~excretion~(μg~P/g/h))))) +
-    theme(axis.text.x = element_blank())
+    theme(axis.text.x = element_blank()) +
+    annotate("text", x = 1.5, y = 2.65, label = '*', size = stat.size) +
+    geom_segment(x = 1, xend = 2, y = 2.6, yend = 2.6,
+                 linewidth = line.width, colour = 'black') +
+    geom_segment(x = 1, xend = 1, y = 2.6, yend = 2.55,
+                 linewidth = line.width, colour = 'black') +
+    geom_segment(x = 2, xend = 2, y = 2.6, yend = 2.55,
+                 linewidth = line.width, colour = 'black')
   PexcrSeas.p
   
   # N:P excretion
@@ -416,7 +408,7 @@
             NPexcrSeas.p,
             nrow = 3, 
             labels = c("(a)", "(b)", "(c)"),
-            font.label = list(size = 10), label.x = 0.25, label.y = 1,
+            font.label = list(size = 10), label.x = 0.22, label.y = 1,
             common.legend = T, legend = 'none', align = 'hv')
   ggsave('tables_figures/final-tables_figures/Fig2.tiff', 
          width = 10, height = 17, units = 'cm', dpi = 600,
@@ -439,9 +431,6 @@
   Nexcr13C.p <- plot_si(excr.SI$d13C, excr.SI$masscorr.N.excr) +
     labs(x = '',
          y = '') +
-    # geom_hline(data = excr.ss %>% filter(Variable == 'masscorr.N.excr'), 
-    #            aes(yintercept = log10(Mean)), linetype = 'dashed', 
-    #            linewidth = line.width) +
     theme(axis.text.x = element_blank(),
           axis.text.y = element_blank())
   Nexcr13C.p
@@ -451,9 +440,6 @@
     labs(x = '',
          y = expression(atop(Log[10]~"mass-specific", 
                              paste(P~excretion~"(μg P/g/h)")))) +
-    # geom_hline(data = excr.ss %>% filter(Variable == 'masscorr.P.excr'), 
-    #            aes(yintercept = log10(Mean)), linetype = 'dashed', 
-    #            linewidth = line.width) +
     theme(axis.text.x = element_blank())
   Pexcr15N.p
   
@@ -461,18 +447,12 @@
   Pexcr13C.p <- plot_si(excr.SI$d13C, excr.SI$masscorr.P.excr) +
     labs(x = '',
          y = '') +
-    # geom_hline(data = excr.ss %>% filter(Variable == 'masscorr.P.excr'), 
-    #            aes(yintercept = log10(Mean)), linetype = 'dashed', 
-    #            linewidth = line.width) +
     theme(axis.text.x = element_blank(),
           axis.text.y = element_blank())
   Pexcr13C.p
   
   # N:P excretion vs d15N
   NPexcr15N.p <- plot_si(excr.SI$d15N, excr.SI$masscorr.NP.excr) +
-    # geom_hline(data = excr.ss %>% filter(Variable == 'masscorr.NP.excr'), 
-    #            aes(yintercept = log10(Mean)), linetype = 'dashed', 
-    #            linewidth = line.width) +
     labs(x = expression(δ^{15} * 'N (‰)'),
          y = expression(atop(Log[10]~"mass-specific", 
                              paste(N:P~excretion~"(molar)")))) 
@@ -480,9 +460,6 @@
   
   # N:P excretion vs d13C
   NPexcr13C.p <- plot_si(excr.SI$d13C, excr.SI$masscorr.NP.excr) +
-    # geom_hline(data = excr.ss %>% filter(Variable == 'masscorr.NP.excr'), 
-    #            aes(yintercept = log10(Mean)), linetype = 'dashed', 
-    #            linewidth = line.width) +
     labs(x = expression(δ^{13} * "C (‰)"),
          y = '') +
     theme(axis.text.y = element_blank())
@@ -517,12 +494,6 @@
                              paste(P~excretion~μg~P/m^2/h)))) 
   PopPexcr.f.yr.p
   
-  # PopNPexcr.f.yr.p <- plot_pop(excr.f.yr, excr.f.yr$Pop.NP.excr)  +
-  #   labs(x = '',
-  #        y = expression(atop(Log[10]~population, 
-  #                            paste(N:P~excretion~(molar))))) 
-  # PopNPexcr.f.yr.p
-  
   # Dreissenids
   PopNexcr.dm.yr.p <- plot_pop(excr.dm.yr, excr.dm.yr$Pop.N.excr)  +
     labs(title = "      Dreissenids",
@@ -539,20 +510,12 @@
     scale_color_manual(values = 'black') +
     scale_x_continuous(n.breaks = 6) 
   PopPexcr.dm.yr.p
-  
-  # PopNPexcr.dm.yr.p <- plot_pop(excr.dm.yr, excr.dm.yr$Pop.NP.excr)  +
-  #   labs(x = '',
-  #        y = '') +
-  #   scale_color_manual(values = 'black') +
-  #   scale_x_continuous(n.breaks = 6) 
-  # PopNPexcr.dm.yr.p
-  
+ 
   # combine plots ----
   fig4 <- ggarrange(PopNexcr.f.yr.p, PopNexcr.dm.yr.p, 
             PopPexcr.f.yr.p, PopPexcr.dm.yr.p,
-            #PopNPexcr.f.yr.p, PopNPexcr.dm.yr.p,
             nrow = 2, ncol = 2,
-            labels = c("(a)", "(b)", "(c)", "(d)"),#, "(e)", "(f)"),
+            labels = c("(a)", "(b)", "(c)", "(d)"),
             font.label = list(size = 10), label.x = 0.25, label.y = 1,
             legend = 'right', align = 'v', common.legend = T)
   annotate_figure(fig4, 
@@ -652,7 +615,6 @@
   PloadWB.p
   
   # combine plots ----
-  #fig5 <- (Nvol.p / Pvol.p) | Pload.p
   fig5 <- Ntt.p / Nload.p | Ptt.p / Pload.p 
   fig5
   fig5 <-  fig5 / PloadWB.p
@@ -662,7 +624,6 @@
             Nload.p, Pload.p,
             NA, PloadWB.p,
             nrow = 3, ncol = 2,
-            #labels = c("(a)", "(b)", "(c)", "(d)"),#, "(e)", "(f)"),
             font.label = list(size = 10), label.x = 0.25, label.y = 1,
             legend = 'none', align = 'v')
   
@@ -685,14 +646,7 @@
     labs(x = '',
          y = expression(atop(Log[10]~mass-specific, 
                              paste(P~excretion~(μg~P/g/h))))) +
-    theme(axis.text.x = element_blank()) #+
-    # annotate("text", x = 1.5, y = 1.55, label = '**', size = stat.size) +
-    # geom_segment(x = 1, xend = 2, y = 1.5, yend = 1.5,
-    #              linewidth = line.width, colour = 'black') +
-    # geom_segment(x = 1, xend = 1, y = 1.5, yend = 1.45,
-    #              linewidth = line.width, colour = 'black') +
-    # geom_segment(x = 2, xend = 2, y = 1.5, yend = 1.45,
-    #              linewidth = line.width, colour = 'black')
+    theme(axis.text.x = element_blank()) 
   PexcrSeas.sub.p
   
   # N:P excretion
@@ -719,34 +673,13 @@
   NexcrbN.p <- plot_si(excr.SI$BodyN, excr.SI$masscorr.N.excr) +
     labs(x = 'Tissue N (%)',
          y = expression(atop(Log[10]~"mass-specific", 
-                             paste(N~excretion~"(μg N/g/h)")))) #+
-    # geom_hline(data = excr.ss %>% filter(Variable == 'masscorr.N.excr'), 
-    #            aes(yintercept = log10(Mean)), linetype = 'dashed', 
-    #            linewidth = line.width) 
+                             paste(N~excretion~"(μg N/g/h)")))) 
   NexcrbN.p
   
   # N excretion vs tissue C:N
   NexcrbCN.p <- plot_si(excr.SI$BodyCN, excr.SI$masscorr.N.excr) +
     labs(x = 'Tissue C:N (molar)',
          y = '') 
-  # NexcrbCN.p <- ggplot(lmN.bCN.pred, aes(x = BodyCN, y = pred)) +
-  #   theme_classic(base_size = 10) +
-  #   labs(x = 'Tissue C:N (molar)',
-  #        y = '') +
-  #   geom_point(data = excr.SI, aes(x = BodyCN, y = log10(masscorr.N.excr), 
-  #                                  colour = Season, shape = Species.code),
-  #              size = point.size) #+
-  #   # geom_ribbon(aes(ymin = lower, ymax = upper), colour = NA, alpha = .2) +
-  #   # geom_line(linewidth = line.width, colour = 'black') +
-  #   scale_colour_manual(name = 'Sampling',
-  #                       labels = Sampling.labels,
-  #                       values = Sampling.colors) +
-  #   scale_shape_manual(
-  #     name = 'Species',
-  #     labels = Species.SI.labels,
-  #     values = c(3, 13, 8, 23, 11, 15, 17, 16)
-  #   ) +
-  #   theme(axis.text.y = element_blank())
   NexcrbCN.p
   
   # combine plots ----

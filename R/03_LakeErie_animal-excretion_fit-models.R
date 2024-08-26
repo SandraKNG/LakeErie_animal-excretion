@@ -10,183 +10,120 @@
   library(emmeans) # for posthoc
   library(lmerTest) # to add random effect to lm + F-test/p-value
   library(writexl)
+  library(rstatix) # kruskal_test
+  library(ARTool) # for ART ANOVA
 
   # ANOVA ----
   # ..Figure 1 - Species ----
-  aovN.sp <- lm(log10(masscorr.N.excr) ~ Species.code, data = excr)
-  aovN.sp <- kruskal.test(log10(masscorr.N.excr) ~ Species.code, data = excr)
-  aovN.sp
-  anova(aovN.sp)
-  aovP.sp <- lm(log10(masscorr.P.excr) ~ Species.code, data = excr)
-  anova(aovN.sp)
-  aovNP.sp <- lm(log10(masscorr.NP.excr) ~ Species.code, data = excr)
-  anova(aovNP.sp)
+  kkN.sp <- excr %>% kruskal_test(log10(masscorr.N.excr) ~ Species.code)
+  kkN.sp
+  dunnN.sp <- excr %>% dunn_test(log10.masscorr.N.excr ~ Species.code)
+  dunnN.sp
   
-  # # Get column indices between "massnorm.SUVA.excr" and "massnorm.C7.excr"
-  # start_col <- which(names(excr.var) == "massnorm.SUVA.excr")
-  # end_col <- which(names(excr.var) == "massnorm.C7.excr")
-  # selected_cols <- names(excr.var)[(start_col):(end_col)]
-  # 
-  # excr.ttest <- excr
-  # t_test_results <- list()
-  # 
-  # # Loop through selected columns
-  # for (col in selected_cols) {
-  #   result <- excr.ttest %>%
-  #     t_test(as.formula(paste(col, "~ 1")), mu = 0, alternative = "greater")
-  #   
-  #   # Store the result in the list
-  #   t_test_results[[col]] <- result
-  #   
-  #   # Print progress
-  #   cat("Processed column:", col, "\n")
-  # }
-  # 
-  # # Convert the list of results to a tibble
-  # t.test.results <- bind_rows(t_test_results) 
-  # t.test.results <- t.test.results %>% 
-  #   arrange(p) %>% 
-  #   rename(response = .y.)
-  # t.test.results
-  # 
+  kkP.sp <- excr %>% kruskal_test(log10(masscorr.P.excr) ~ Species.code)
+  kkP.sp
+  dunnP.sp <- excr %>% dunn_test(log10.masscorr.P.excr ~ Species.code)
+  dunnP.sp
+  
+  kkNP.sp <- excr %>% kruskal_test(log10(masscorr.NP.excr) ~ Species.code)
+  kkNP.sp
+  dunnNP.sp <- excr %>% dunn_test(log10.masscorr.NP.excr ~ Species.code)
+  dunnNP.sp
+ 
   # ..Figure 2 - Season  ----
-  aovN.seas <- lm(log10(masscorr.N.excr) ~ Season * Species.code, data = excr)
-  anova(aovN.seas)
-  Anova(aovN.seas)
-  check_model(aovN.seas)
-  aovP.seas <- lm(log10(masscorr.P.excr) ~ Season * Species.code, data = excr)
-  Anova(aovP.seas)
-  check_model(aovP.seas)
-  aovNP.seas <- lm(log10(masscorr.NP.excr) ~ Season * Species.code, data = excr)
-  Anova(aovNP.seas)
+  kkN.seas <- excr %>%  kruskal_test(log10(masscorr.N.excr) ~ Season)
+  kkN.seas
   
-  ols_vif_tol(aovP.seas)
-  vif(aovP.seas)
+  kkP.seas <- excr %>%  kruskal_test(log10(masscorr.P.excr) ~ Season)
+  kkP.seas
+
+  kkNP.seas <- excr %>%  kruskal_test(log10(masscorr.NP.excr) ~ Season)
+  kkNP.seas
   
   # ..Figure S1 - Season sub ----
   excr.seas.sub <- excr %>%  filter(Species.code %in% c('GS', 'LB'))
   
-  aovN.seas.sub <- lm(log10(masscorr.N.excr) ~ Season * Species.code, 
-                      data = excr.seas.sub)
-  Anova(aovN.seas.sub)
-  check_model(aovN.seas.sub)
-  aovP.seas.sub <- lm(log10(masscorr.P.excr) ~ Season * Species.code, 
-                      data = excr.seas.sub)
-  Anova(aovP.seas.sub)
-  check_model(aovP.seas.sub)
-  aovNP.seas.sub <- lm(log10(masscorr.NP.excr) ~ Season * Species.code, 
-                   data = excr.seas.sub)
-  Anova(aovNP.seas.sub)
-  check_model(aovNP.seas.sub)
+  kkN.seas.sub <- excr.seas.sub %>%  kruskal_test(log10(masscorr.N.excr) ~ Season)
+  kkN.seas.sub
   
-  # make anova table based on all sp models ----
-  anova_sp_models <- list(
-    "Mass-specific N excretion" = aovN.sp,
-    "Mass-specific P excretion" = aovP.sp,
-    "Mass-specific N:P excretion" = aovNP.sp
+  kkP.seas.sub <- excr.seas.sub %>%  kruskal_test(log10(masscorr.P.excr) ~ Season)
+  kkP.seas.sub
+  
+  kkNP.seas.sub <- excr.seas.sub %>%  kruskal_test(log10(masscorr.NP.excr) ~ Season)
+  kkNP.seas.sub
+ 
+  # make kruskal table based on all sp models ----
+  kruskal_sp_models <- list(
+    "Mass-specific N excretion" = kkN.sp,
+    "Mass-specific P excretion" = kkP.sp,
+    "Mass-specific N:P excretion" = kkNP.sp
   )
-  combined_anova_sp <- bind_rows(lapply(names(anova_sp_models), function(model_name) {
-    model <- anova_sp_models[[model_name]]
-    anova_result <- rownames_to_column(anova(model), 
+  combined_kruskal_sp <- bind_rows(lapply(names(kruskal_sp_models), function(model_name) {
+    model <- kruskal_sp_models[[model_name]]
+    kruskal_result <- rownames_to_column(model, 
                                        var = "Predictors") %>% as_tibble
-    anova_result$groupname <- model_name
-    anova_result <- anova_result %>% 
+    kruskal_result$model <- model_name
+    kruskal_result <- kruskal_result %>% 
       mutate(Predictors = ifelse(
-        Predictors == 'Species.code',
-        'Species', Predictors))
-    return(anova_result)
+        Predictors == 1,
+        'Species', Predictors)) %>% 
+      select(model, Predictors, n, statistic, df, p)
+    return(kruskal_result)
+  }))
+ 
+  # make kruskal table based on all season models ----
+  kruskal_seas_models <- list(
+    "Mass-specific N excretion" = kkN.seas,
+    "Mass-specific P excretion" = kkP.seas,
+    "Mass-specific N:P excretion" = kkNP.seas
+  )
+  combined_kruskal_seas <- bind_rows(lapply(names(kruskal_seas_models), function(model_name) {
+    model <- kruskal_seas_models[[model_name]]
+    kruskal_result <- rownames_to_column(model, 
+                                         var = "Predictors") %>% as_tibble
+    kruskal_result$model <- model_name
+    kruskal_result <- kruskal_result %>% 
+      mutate(Predictors = ifelse(
+        Predictors == 1,
+        'Sampling', Predictors)) %>% 
+      select(model, Predictors, n, statistic, df, p)
+    return(kruskal_result)
   }))
   
-  # make anova table based on all season models ----
-  anova_seas_models <- list(
-    "Mass-specific N excretion" = aovN.seas,
-    "Mass-specific P excretion" = aovP.seas,
-    "Mass-specific N:P excretion" = aovNP.seas
+  # make kruskal table based on all season sub models ----
+  kruskal_seas_sub_models <- list(
+    "Mass-specific N excretion" = kkN.seas.sub,
+    "Mass-specific P excretion" = kkP.seas.sub,
+    "Mass-specific N:P excretion" = kkNP.seas.sub
   )
-  combined_anova_seas <- bind_rows(lapply(names(anova_seas_models),
-                                          function(model_name) {
-    model <- anova_seas_models[[model_name]]
-    anova_result <- rownames_to_column(Anova(model),
-                                       var = "Predictors") %>% as_tibble
-    anova_result$groupname <- model_name
-    anova_result <- anova_result %>%
-      mutate(
-        Predictors = ifelse(
-          Predictors == 'Species.code',
-          'Species',
-          ifelse(
-            Predictors == 'Season',
-            'Sampling',
-          ifelse(Predictors == 'Season:Species.code', 'Sampling:Species', Predictors
-          ))))
-    return(anova_result)
+  combined_kruskal_seas_sub <- bind_rows(lapply(names(kruskal_seas_sub_models), function(model_name) {
+    model <- kruskal_seas_sub_models[[model_name]]
+    kruskal_result <- rownames_to_column(model, 
+                                         var = "Predictors") %>% as_tibble
+    kruskal_result$model <- model_name
+    kruskal_result <- kruskal_result %>% 
+      mutate(Predictors = ifelse(
+        Predictors == 1,
+        'Sampling', Predictors)) %>% 
+      select(model, Predictors, n, statistic, df, p)
+    return(kruskal_result)
   }))
   
-  # make anova table based on all season sub models ----
-  anova_seas_sub_models <- list(
-    "Mass-specific N excretion" = aovN.seas.sub,
-    "Mass-specific P excretion" = aovP.seas.sub,
-    "Mass-specific N:P excretion" = aovNP.seas.sub
+  # modify posthoc dunn table ----
+  dunn_sp_models <- list(
+    "Mass-specific N excretion" = dunnN.sp,
+    "Mass-specific P excretion" = dunnP.sp,
+    "Mass-specific N:P excretion" = dunnNP.sp
   )
-  combined_anova_sub_seas <-
-    bind_rows(lapply(names(anova_seas_sub_models),
-                     function(model_name) {
-                       model <- anova_seas_models[[model_name]]
-                       anova_result <-
-                         rownames_to_column(Anova(model),
-                                            var = "Predictors") %>% as_tibble
-                       anova_result$groupname <-
-                         model_name
-                       anova_result <-
-                         anova_result %>%
-                         mutate(Predictors = ifelse(
-                           Predictors == 'Species.code',
-                           'Species',
-                           ifelse(
-                             Predictors == 'Season',
-                             'Sampling',
-                           ifelse(
-                             Predictors == 'Season:Species.code',
-                             'Sampling:Species',
-                             Predictors
-                           )
-                         )))
-                       return(anova_result)
-                     }))
-  
-  # ANOVA posthoc - emmeans ----
-  emm <- function(lm){
-    # pairwise comparisons using emmeans
-    m1 <- emmeans(lm, pairwise ~ Species.code, type = 'response')
-    m2 <- emmeans(lm, pairwise ~ Species.code, type = 'response')
-    contrasts <- m1$contrasts %>% summary(infer = T) %>% 
-      as_tibble() %>%  arrange(p.value)
-    print(m2)
-    #print(contrasts, n = 40)
-    
-    # Extracting effects from emmeans
-    emm_df <- as_tibble(m1$emmeans)
-    
-    # Return a list containing the results
-    result_list <- list(contrasts = contrasts, 
-                        emmeans = emm_df)
-    return(result_list)
-  }
-  
-  pwcN <- emm(aovN.sp)
-  pwcP <- emm(aovP.sp)
-  pwcNP <- emm(aovNP.sp)
-  
-  # make contrast table based on all models
-  contrasts <- bind_rows(pwcN[['contrasts']], pwcP[['contrasts']], 
-                         pwcNP[['contrasts']], .id = 'column_label')
-  
-  contrasts <- contrasts %>% 
-    mutate(test = if_else(column_label == 1,  "Mass-normalized N excretion",
-                                  if_else(column_label == 2,  "Mass-normalized P excretion", 
-                                          "Mass-normalized N:P excretion"))) %>% 
-    select(-column_label)
-  
+  combined_dunn_sp <- bind_rows(lapply(names(dunn_sp_models), function(model_name) {
+    model <- dunn_sp_models[[model_name]]
+    dunn_result <- rownames_to_column(model,
+                                         var = "Predictors") %>% as_tibble
+    dunn_result$model <- model_name
+    dunn_result <- dunn_result %>% 
+      select(c(model, group1, group2, n1, n2, statistic, p.adj))
+    return(dunn_result)
+  }))
   
   # LMER ----
   # data distribution
@@ -225,10 +162,6 @@
     model <- anova_temp_models[[model_name]]
     anova_result <- rownames_to_column(anova(model), var = "Predictors") %>% as_tibble
     anova_result$groupname <- model_name
-    # anova_result <- anova_result %>%  
-    #   mutate(Predictors = if_else(Predictors == 'BodyN', 'Tissue N',
-    #                               if_else(Predictors == 'BodyCN', 'Tissue C:N',
-    #                                       Predictors)))
     return(anova_result)
   }))
   

@@ -38,7 +38,38 @@
   ggqqplot(aovN.sp, 'masscorr.N.excr', facet.by = 'Species.code')
   
   # check homogeneity of variances
-  aovN.sp %>% levene_test(masscorr.N.excr ~ Species.code)
+  excr %>% levene_test(log10(masscorr.N.excr) ~ Species.code)
+  excr %>% levene_test(log10(masscorr.P.excr) ~ Species.code)
+  excr %>% levene_test(log10(masscorr.N.excr) ~ Season * Species.code)
+  excr.seas.sub %>% levene_test(log10(masscorr.N.excr) ~ Season)
+  excr.seas.sub %>% levene_test(log10(masscorr.P.excr) ~ Season)
+  excr %>% levene_test(log10(masscorr.P.excr) ~ Season * Species.code)
+  
+  # plot log10 P excretion rate vs log10 mass ----
+  ggplot(excr, 
+         aes(x = log10(Mass), y = log10(N.excretion.rate))) +
+    geom_point(aes(colour = Species.code), size = 2) +
+    theme_classic(base_size = 17)
+  ggplot(excr, 
+         aes(x = log10(Mass), y = log10(P.excretion.rate))) +
+    geom_point(aes(colour = Species.code), size = 2) +
+    theme_classic(base_size = 17)
+  # vert
+  ggplot(excr %>% filter(Species.code != 'DM'),
+         aes(x = Log10.mass, y = Log10.P.excretion.rate)) +
+    geom_point()
+  ggplot(excr %>% filter(Species.code == 'LP'),
+         aes(x = Log10.mass, y = Log10.P.excretion.rate)) +
+    geom_point()
+  ggplot(excr %>% filter(Species.code == 'LB'),
+         aes(x = Log10.mass, y = Log10.P.excretion.rate)) +
+    geom_point()
+  ggplot(excr %>% filter(Species.code == 'YB'),
+         aes(x = Log10.mass, y = Log10.P.excretion.rate)) +
+    geom_point()
+  ggplot(excr %>% filter(Species.code != 'QM'),
+         aes(x = Log10.mass, y = Log10.N.excretion.rate)) +
+    geom_point()
   
   # Individual excretion rate ----
   species <- c('Brown Bullhead', 'Goldfish', 'Gizzard shad', 'Largemouth bass', 
@@ -46,7 +77,7 @@
                'Walleye', 'White perch', 'Yellow bullhead', 'Yellow perch')
   
   # ..N excretion rate vs species ----
-  NexcrSp.p <- ggplot(excr%>%  filter(Log10.mass > -2.328827),
+  NexcrSp.p <- ggplot(excr %>%  filter(Log10.mass > -2.328827),
                       aes(x = Species.code, y = Log10.massnorm.N.excr)) +
     geom_jitter(size = 3, alpha = .5, 
                 position = position_jitterdodge(jitter.width = 0.2),
