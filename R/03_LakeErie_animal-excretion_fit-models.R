@@ -7,28 +7,28 @@
   library(lindia) # to look at model diagnostics
   library(performance) # to compare models
   library(car) # for Anova() function
-  library(emmeans) # for posthoc
+  #library(emmeans) # for posthoc
   library(lmerTest) # to add random effect to lm + F-test/p-value
   library(writexl)
   library(rstatix) # kruskal_test
-  library(ARTool) # for ART ANOVA
+  library(multcompView)
 
   # ANOVA ----
   # ..Figure 1 - Species ----
   kkN.sp <- excr %>% kruskal_test(log10(masscorr.N.excr) ~ Species.code)
   kkN.sp
   dunnN.sp <- excr %>% dunn_test(log10.masscorr.N.excr ~ Species.code)
-  dunnN.sp
+  print(dunnN.sp %>%  arrange(p.adj,group1), n = 45)
   
   kkP.sp <- excr %>% kruskal_test(log10(masscorr.P.excr) ~ Species.code)
   kkP.sp
   dunnP.sp <- excr %>% dunn_test(log10.masscorr.P.excr ~ Species.code)
-  dunnP.sp
+  print(dunnP.sp %>%  arrange(group1, p.adj), n = 45)
   
   kkNP.sp <- excr %>% kruskal_test(log10(masscorr.NP.excr) ~ Species.code)
   kkNP.sp
   dunnNP.sp <- excr %>% dunn_test(log10.masscorr.NP.excr ~ Species.code)
-  dunnNP.sp
+  print(dunnNP.sp %>%  arrange(group1, p.adj), n = 45)
  
   # ..Figure 2 - Season  ----
   kkN.seas <- excr %>%  kruskal_test(log10(masscorr.N.excr) ~ Season)
@@ -51,6 +51,8 @@
   
   kkNP.seas.sub <- excr.seas.sub %>%  kruskal_test(log10(masscorr.NP.excr) ~ Season)
   kkNP.seas.sub
+  
+
  
   # make kruskal table based on all sp models ----
   kruskal_sp_models <- list(
@@ -125,27 +127,24 @@
     return(dunn_result)
   }))
   
+  
   # LMER ----
   # data distribution
   hist(excr$masscorr.N.excr)
   
   # ..Figure 2 - Temperature ----
   lmN.temp <- lmer(log10(masscorr.N.excr) ~ Temp + (1|Species.code), data = excr)
-  lmN.temp2 <- lm(log10(masscorr.N.excr) ~ Temp, data = excr)
-  lmN.temp <- lm(log10(masscorr.N.excr) ~ Temp * Species.code, data = excr)
   check_model(lmN.temp)
   AIC(lmN.temp, lmN.temp2)
   anova(lmN.temp)
   summary(lmN.temp)
   
   lmP.temp <- lmer(log10(masscorr.P.excr) ~ Temp + (1|Species.code), data = excr)
-  lmP.temp2 <- lm(log10(masscorr.P.excr) ~ Temp, data = excr)
   check_model(lmP.temp)
   AIC(lmP.temp, lmP.temp2)
   anova(lmP.temp)
   
   lmNP.temp <- lmer(log10(masscorr.NP.excr) ~ Temp + (1|Species.code), data = excr)
-  lmNP.temp2 <- lm(log10(masscorr.NP.excr) ~ Temp, data = excr)
   check_model(lmNP.temp)
   AIC(lmNP.temp, lmNP.temp2)
   anova(lmNP.temp)

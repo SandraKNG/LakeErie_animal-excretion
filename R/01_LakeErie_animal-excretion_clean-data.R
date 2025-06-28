@@ -7,11 +7,18 @@
   library(tidyverse)
   library(rfishbase) # to get fish trophic position using fishbase.org database
   library(datawizard) # to do summary statistics
+  library(metaDigitise) # to digitise figure for dreissenid biomass
+  library(writexl)
+  
+  # only do it once
+  # retrieve data from figure
+  # bms_dm_dig <- metaDigitise(dir = "data/dataToExtract/")
+  # write_xlsx(bms_dm_dig, 'data/LakeErie_dreissenid_biomass_digestimates.xlsx')
   
   er <- read_csv('data/2022-03-03_LakeErie_Mastersheet.csv')
-  bms_f <- read_csv('data/2022-03-03_LakeErie_Fish_biomass_estimates.csv')
-  bms_WB <- read_csv('data/2022-03-03_LakeErie_WB_Fish_Dreissenid_biomass_estimates.csv')
-  bms_dm <- read_csv('data/LakeErie_Dreissenid_biomass_estimates.csv')
+  bms_f <- read_csv('data/2022-03-03_LakeErie_fish_species_biomass_estimates.csv')
+  bms_WB <- read_csv('data/2022-03-03_LakeErie_WB_total_fish_dreissenid_biomass_estimates.csv')
+  bms_dm <- read_csv('data/LakeErie_dreissenid_biomass_estimates.csv')
   
   str(er) 
   head(er)
@@ -46,16 +53,14 @@
     )
   
   biomass_f <- bms_f %>% 
-    rename(Biomass = `Biomass (kg/ha)`,
-           Species.code = 'Species code') 
+    rename(Species.code = 'Species code',
+           biomass.lw.kg.ha = 'Biomass_lakewide (kg/ha)',
+           biomass.wb.kg.ha = 'Biomass_WB (kg/ha)') 
   
-  biomass_WB <- bms_WB %>% 
-    rename(Biomass_kg_ha = `Biomass (kg/ha)`,
-           Biomass_g_m2 = `Biomass (g/m2)`) 
+  biomass_WB <- bms_WB %>% filter(Year >= 2011)
   
   biomass_dm <- bms_dm %>% 
-    rename(Biomass.g.m2 = `Biomass (g/m2)`) %>% 
-    select(-`Ref: 500 g/m2 = 3.6cm`)
+    rename(n.b = n)
   
   # get coeff of variation ----
   # verts animals without DM - SRP and NH4
@@ -113,65 +118,54 @@
   excr.SI <- excr %>% filter(!is.na(d15N))
   
   # ..for a yearly dataset ----
-  # lakewide fish
+  # .....lakewide fish ----
   # need to convert biomass from kg/ha to g/m2 (/10^4)
   # need to convert fish wet biomass to dry biomass using 0.25 by Vanni et al. (2017)
   # need to convert dreissenid total wet biomass to ash free dry biomass using 
   # 0.025 by Karatayev et al. (2022)
   excr.f.yr <- excr %>% 
-    filter(Species.code != 'DM') %>% 
+    filter(Species.code %in% c('GS','LP','RG','WP','YP')) %>% 
     group_by(Species.code, Taxo.rank) %>% 
     reframe(
       across(
-        ends_with('excr'),
-        \(x) mean(x, na.rm = TRUE)
-      ),
-      n = n(),
-      across(
-        ends_with('excr.t'),
-        \(x) mean(x, na.rm = TRUE)
-      ),
-      n = n()
+        starts_with('masscorr'),
+        list(mean = ~mean(.x, na.rm = TRUE), sd = ~sd(.x, na.rm = TRUE)),
+        .names = "{.col}{ifelse(.fn == 'sd', '.sd', '')}"
+      )
     ) %>% 
+    select(-c(ends_with('.t.sd'), ends_with('.t'))) %>% 
     left_join(biomass_f, by = 'Species.code') %>%
     mutate(
-      Biomass.g.m2 = Biomass * 10 ^ 3 / 10 ^ 4 * 0.25
-    ) %>% 
-    mutate(
-      Pop.N.excr = masscorr.N.excr * Biomass.g.m2,
-      Pop.P.excr = masscorr.P.excr * Biomass.g.m2,
-      Pop.NP.excr = Pop.N.excr / Pop.P.excr / (31 / 14),
-      Pop.N.excr.t = masscorr.N.excr.t * Biomass.g.m2,
-      Pop.P.excr.t = masscorr.P.excr.t * Biomass.g.m2,
-      Pop.NP.excr.t = Pop.N.excr.t / Pop.P.excr.t / (31 / 14)
+      biomass.g.m2 = biomass.lw.kg.ha * 10 ^ 3 / 10 ^ 4 * 0.25,
+      Pop.N.excr = masscorr.N.excr * biomass.g.m2,
+      Pop.N.excr.sd = masscorr.N.excr.sd * biomass.g.m2,
+      Pop.P.excr = masscorr.P.excr * biomass.g.m2,
+      Pop.P.excr.sd = biomass.g.m2 * masscorr.P.excr.sd
     ) %>%
-    filter(!is.na(Biomass)) 
+    filter(!is.na(biomass.lw.kg.ha)) 
   
-  # lakewide dreissenids
+  # .....lakewide dreissenids ----
   excr.dm.yr <- excr %>% 
     filter(Species.code == 'DM') %>% 
     group_by(Species.code, Taxo.rank) %>% 
     reframe(
       across(
-        ends_with('excr'),
-        \(x) mean(x, na.rm = TRUE)
-      ),
-      n = n(),
-      across(
-        ends_with('excr.t'),
-        \(x) mean(x, na.rm = TRUE)
-      ),
-      n = n()
+        starts_with('masscorr'),
+        list(mean = ~mean(.x, na.rm = TRUE), sd = ~sd(.x, na.rm = TRUE)),
+        .names = "{.col}{ifelse(.fn == 'sd', '.sd', '')}"
+      )
     ) %>% 
+    select(-c(ends_with('.t.sd'), ends_with('.t'))) %>% 
     left_join(biomass_dm, by = 'Species.code') %>%
     mutate(
-      Biomass.g.m2 = Biomass.g.m2 * 0.025,
-      Pop.N.excr = masscorr.N.excr * Biomass.g.m2,
-      Pop.P.excr = masscorr.P.excr * Biomass.g.m2,
-      Pop.NP.excr = Pop.N.excr / Pop.P.excr / (31 / 14),
-      Pop.N.excr.t = masscorr.N.excr.t * Biomass.g.m2,
-      Pop.P.excr.t = masscorr.P.excr.t * Biomass.g.m2,
-      Pop.NP.excr.t = Pop.N.excr.t / Pop.P.excr.t / (31 / 14)
+      biomass.g.m2 = biomass.g.m2 * 0.0265,
+      biomass.g.m2.sd = biomass.g.m2.sd * 0.0265,
+      Pop.N.excr = masscorr.N.excr * biomass.g.m2,
+      Pop.N.excr.sd = Pop.N.excr * sqrt((masscorr.N.excr.sd / masscorr.N.excr)^2 +
+                                          (biomass.g.m2.sd / biomass.g.m2)^2),
+      Pop.P.excr = masscorr.P.excr * biomass.g.m2,
+      Pop.P.excr.sd = Pop.P.excr * sqrt((masscorr.P.excr.sd / masscorr.P.excr)^2 +
+                                          (biomass.g.m2.sd / biomass.g.m2)^2)
     ) 
   
   # combine
@@ -187,50 +181,46 @@
              'Mass', 'Temp')) %>% 
     describe_distribution()
     
-  # Western basin only
-  excr_yr_WB <- biomass_WB %>% 
+  # .....Western basin only ----
+  # define function
+  get_excr_value <- function(source, variable, stat = "Mean") {
+    group_value <- if (source == "Dreissenid") "Taxo.rank=Dreissenid" else "Taxo.rank=Fish"
+    value <- excr.taxo.ss %>%
+      filter(.group == group_value, Variable == variable) %>%
+      slice(1) %>%
+      pull({{ stat }})
+    return(value)
+  }
+  
+  # make dataset
+  excr.yr.WB <- biomass_WB %>%
     mutate(
-      Biomass_g_m2 = Biomass_g_m2 * 0.25,
-      Biomass_kg_ha = Biomass_kg_ha * 0.25,
-      Pop.N.excr = if_else(
-        Source == 'Dreissenid SRP', 
-        excr.taxo.ss %>% 
-          filter(.group == "Taxo.rank=Dreissenid", Variable == "masscorr.N.excr") %>% 
-          pull(Mean) * Biomass_g_m2,
-        excr.taxo.ss %>% 
-          filter(.group == "Taxo.rank=Fish", Variable == "masscorr.N.excr") %>% 
-          pull(Mean) * Biomass_kg_ha,
-        NA_real_
+      biomass.g.m2 = if_else(
+        Source == 'Fish',
+        biomass.kg.ha * 10 ^ 3 / 10 ^ 4 * 0.25,
+        biomass.g.m2 * 0.0265
       ),
-      Pop.N.excr.t = if_else(
-        Source == 'Dreissenid SRP', 
-        excr.taxo.ss %>% 
-          filter(.group == "Taxo.rank=Dreissenid", Variable == "masscorr.N.excr.t") %>% 
-          pull(Mean) * Biomass_g_m2,
-        excr.taxo.ss %>% 
-          filter(.group == "Taxo.rank=Fish", Variable == "masscorr.N.excr.t") %>% 
-          pull(Mean) * Biomass_kg_ha,
-        NA_real_
+      biomass.g.m2.sd = if_else(
+        Source == 'Fish',
+        biomass.kg.ha.sd * 10 ^ 3 / 10 ^ 4 * 0.25,
+        biomass.g.m2.sd * 0.0265
       ),
-      Pop.P.excr = if_else(
-        Source == 'Dreissenid SRP', 
-        excr.taxo.ss %>% 
-          filter(.group == "Taxo.rank=Dreissenid", Variable == "masscorr.P.excr") %>% 
-          pull(Mean) * Biomass_g_m2,
-        excr.taxo.ss %>% 
-          filter(.group == "Taxo.rank=Fish", Variable == "masscorr.P.excr") %>% 
-          pull(Mean) * Biomass_kg_ha,
-        NA_real_
+      # Lookup excretion means and SDs safely using map_dbl
+      masscorr.N.excr = map_dbl(Source, ~ get_excr_value(.x, "masscorr.N.excr", "Mean")),
+      masscorr.N.excr.sd = map_dbl(Source, ~ get_excr_value(.x, "masscorr.N.excr", "SD")),
+      masscorr.P.excr = map_dbl(Source, ~ get_excr_value(.x, "masscorr.P.excr", "Mean")),
+      masscorr.P.excr.sd = map_dbl(Source, ~ get_excr_value(.x, "masscorr.P.excr", "SD")),
+      
+      # Scaled population-level rates + uncertainty propagation
+      Pop.N.excr = masscorr.N.excr * biomass.g.m2,
+      Pop.N.excr.sd = Pop.N.excr * sqrt(
+        (masscorr.N.excr.sd / masscorr.N.excr)^2 +
+          (biomass.g.m2.sd / biomass.g.m2)^2
       ),
-      Pop.P.excr.t = if_else(
-        Source == 'Dreissenid SRP', 
-        excr.taxo.ss %>% 
-          filter(.group == "Taxo.rank=Dreissenid", Variable == "masscorr.P.excr.t") %>% 
-          pull(Mean) * Biomass_g_m2,
-        excr.taxo.ss %>% 
-          filter(.group == "Taxo.rank=Fish", Variable == "masscorr.P.excr.t") %>% 
-          pull(Mean) * Biomass_kg_ha,
-        NA_real_
+      Pop.P.excr = masscorr.P.excr * biomass.g.m2,
+      Pop.P.excr.sd = Pop.P.excr * sqrt(
+        (masscorr.P.excr.sd / masscorr.P.excr)^2 +
+          (biomass.g.m2.sd / biomass.g.m2)^2
       )
     )
   
@@ -244,67 +234,76 @@
   Area.WB <- 3284 * 10^6
   lake.vol.L <- 480 * 10^12
   
-  excr.WB.tt <- excr_yr_WB %>% 
-    group_by(Source) %>% 
-    reframe(
-      Agg.N.excr.t = mean(Pop.N.excr.t, na.rm = TRUE),
-      Agg.P.excr.t = mean(Pop.P.excr.t, na.rm = TRUE)
-    ) 
-  
-  ambient.WB.tt <- excr %>%
-    reframe(
-      AmTDN = mean(AmTDN, na.rm = T),
-      AmTDP = mean(AmTDP, na.rm = T)
-    ) 
-  
-  # calculate turnover rates by converting ambient TDN/TDP (ug/L)
-  # to areal concentration (mg/m2) by multiplying by mean depth then converting to ug/m2 (x10^3)
-  excr.WB.tt <- excr.WB.tt %>%
-    cross_join(ambient.WB.tt) %>%
-    mutate(
-      AmTDN_m2 = AmTDN * 8.5 * 10^3,
-      AmTDP_m2 = AmTDP * 8.5 * 10^3, 
-      N.turnover.time.h = AmTDN_m2 / Agg.N.excr.t,
-      P.turnover.time.h = AmTDP_m2 / Agg.P.excr.t,
-      N.turnover.time.d = N.turnover.time.h / 24,
-      P.turnover.time.d = P.turnover.time.h / 24
-    )
-  
-  
   # combine load estimates ----
+  # convert loads in ug/h to tonnes/yr by:
+  # converting yr to h (x 24h x 325d = 8760h) and multiplying loads by it
+  # converting ug to tonnes and dividing loads by it
   excr.load <- excr.f.yr %>%  filter(Year == 2019) %>%
     reframe(
+      Agg.biomass.g.m2 = sum(biomass.g.m2, na.rm = TRUE),
       Agg.N.excr = sum(Pop.N.excr, na.rm = TRUE),
-      Agg.P.excr = sum(Pop.P.excr, na.rm = TRUE)
+      Agg.biomass.g.m2.sd = sqrt(mean(biomass.g.m2^2, na.rm = TRUE)),
+      Agg.biomass.g.m2.se = sd(biomass.g.m2, na.rm = TRUE) / sqrt(n()),
+      # Propagate measurement uncertainty across years
+      Agg.N.excr.sd = sqrt(mean(Pop.N.excr.sd^2, na.rm = TRUE)),
+      Agg.N.excr.se = sd(Pop.N.excr, na.rm = TRUE) / sqrt(n()),
+      Agg.P.excr = sum(Pop.P.excr, na.rm = TRUE),
+      Agg.P.excr.sd = sqrt(mean(Pop.P.excr.sd^2, na.rm = TRUE)),
+      Agg.P.excr.se = sd(Pop.P.excr, na.rm = TRUE) / sqrt(n()),
+      n.load = n()
     ) %>% 
     mutate(
-      Nload = Agg.N.excr * 8760 * Area / 10 ^ 12,
-      Pload = Agg.P.excr * 8760 * Area / 10 ^ 12,
+      Nload = Agg.N.excr * 8760 * Area / 1e12,
+      Nload.sd = Agg.N.excr.sd * 8760 * Area / 1e12,
+      Nload.se = Agg.N.excr.se * 8760 * Area / 1e12,
+      Pload = Agg.P.excr * 8760 * Area / 1e12,
+      Pload.sd = Agg.P.excr.sd * 8760 * Area / 1e12,
+      Pload.se = Agg.P.excr.se * 8760 * Area / 1e12,
       Source = 'Fish'
     )
   
   excr.DM.load <- excr.dm.yr %>%  filter(Year == 2019) %>%
     reframe(
-      Agg.N.excr = sum(Pop.N.excr, na.rm = TRUE),
-      Agg.P.excr = sum(Pop.P.excr, na.rm = TRUE),
+      Agg.biomass.g.m2 = biomass.g.m2,
+      Agg.biomass.g.m2.sd = biomass.g.m2.sd,
+      Agg.biomass.g.m2.se = biomass.g.m2.se,
+      Agg.N.excr = Pop.N.excr,
+      Agg.N.excr.sd = Pop.N.excr.sd,
+      Agg.P.excr = Pop.P.excr,
+      Agg.P.excr.sd = Pop.P.excr.sd,
+      n.load = n()
     ) %>% 
     mutate(
-      Nload = Agg.N.excr * 8760 * Area / 10 ^ 12,
-      Pload = Agg.P.excr * 8760 * Area / 10 ^ 12,
-      Nflux = Agg.N.excr * 8760 * Area * 10^-15,
-      Pflux = Agg.P.excr * 8760 * Area * 10^-15,
+      Nload = Agg.N.excr * 8760 * Area / 1e12,
+      Nload.sd = Agg.N.excr.sd * 8760 * Area / 1e12,
+      Pload = Agg.P.excr * 8760 * Area / 1e12,
+      Pload.sd = Agg.P.excr.sd * 8760 * Area / 1e12,
       Source = 'Dreissenid'
     )
   
-  excr.WB.load <- excr_yr_WB %>% 
+  excr.WB.load <- excr.yr.WB %>% 
     group_by(Source) %>% 
     reframe(
+      Agg.biomass.g.m2 = mean(biomass.g.m2, na.rm = TRUE),
+      Agg.biomass.g.sd = sqrt(mean(biomass.g.m2.sd^2, na.rm = TRUE)),
+      Agg.biomass.g.se = sd(biomass.g.m2, na.rm = TRUE) / sqrt(n()),
+      # Mean of population-level excretion
       Agg.N.excr = mean(Pop.N.excr, na.rm = TRUE),
-      Agg.P.excr = mean(Pop.P.excr, na.rm = TRUE)
-    ) %>% 
+      # Propagate measurement uncertainty across years
+      Agg.N.excr.sd = sqrt(mean(Pop.N.excr.sd^2, na.rm = TRUE)),
+      Agg.N.excr.se = sd(Pop.N.excr, na.rm = TRUE) / sqrt(n()),
+      Agg.P.excr = mean(Pop.P.excr, na.rm = TRUE),
+      Agg.P.excr.sd = sqrt(mean(Pop.P.excr.sd^2, na.rm = TRUE)),
+      Agg.P.excr.se = sd(Pop.P.excr, na.rm = TRUE) / sqrt(n()),
+      n.load = n()
+    ) %>%
     mutate(
-      Nload = Agg.N.excr * 8760 * Area.WB / 10 ^ 12,
-      Pload = Agg.P.excr * 8760 * Area.WB / 10 ^ 12
+      Nload = Agg.N.excr * 8760 * Area.WB / 1e12,
+      Nload.sd = Agg.N.excr.sd * 8760 * Area.WB / 1e12,
+      Nload.se = Agg.N.excr.se * 8760 * Area.WB / 1e12,
+      Pload = Agg.P.excr * 8760 * Area.WB / 1e12,
+      Pload.sd = Agg.P.excr.sd * 8760 * Area.WB / 1e12,
+      Pload.se = Agg.P.excr.se * 8760 * Area.WB / 1e12
     )
   
   # ambient load based on main tributaries calc from US + data from Can
@@ -340,14 +339,22 @@
     mutate(Source = factor(
       Source,
       levels = c(
-        'Dreissenid SRP',
-        'Fish SRP',
+        'Dreissenid',
+        'Fish',
         'Tributary SRP',
         'Tributary TP',
         'Total SRP',
         'Total TP'
       )
     ))
+  
+  # add loads to excr.yr datasets ----
+  excr.lw.final <- excr.yr %>%
+    rename(Source = Taxo.rank) %>% 
+    left_join(excr.load, by = 'Source')
+  
+  excr.WB.final <- excr.yr.WB %>%
+    left_join(excr.WB.load, by = 'Source')
 
   # ..summary statistics ----
   # overall summary
@@ -386,8 +393,7 @@
   # population rates by species
   excr.pop.ss <- excr.yr %>% 
     group_by(Taxo.rank) %>% 
-    select(c('Pop.N.excr', 'Pop.P.excr', 'Pop.NP.excr',
-             'Biomass.g.m2')) %>% 
+    select(c('Pop.N.excr', 'Pop.P.excr','biomass.g.m2')) %>% 
     describe_distribution()
   
   CTL.av <- er %>% filter(`Species code` %in% c("CTL1","CTL2","CTL3",

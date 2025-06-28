@@ -463,9 +463,11 @@
   
   # ..Pop N excretion vs year ----
   PopNexcr.yr.p <- ggplot(excr.yr,
-                          aes(x = Year, y = Log10.Pop.N.excr.sp,
-                              color = Species.code)) + 
-    geom_point(size = 6) +
+                          aes(x = Species.code, y = Pop.N.excr)) + 
+    geom_boxplot() +
+    scale_y_continuous(trans = 'log10') +
+    geom_point()
+  PopNexcr.yr.p 
     geom_line(size = 2) +
     labs(x = '',
          y = expression(atop(Log[10]~population, 
@@ -520,54 +522,70 @@
          units = 'in', dpi = 600)
   
   # ..Pop N excretion vs year ----
-  PopNexcr.yr.p <- ggplot(excr.yr,
-                          aes(x = Year, y = Log10.Pop.N.excr.sp,
-                              color = Species.code)) + 
+  PopNexcr.yr.p <- ggplot(excr_yr_WB %>%  filter(Source == 'Fish SRP'),
+                          aes(x = Year, y = Pop.N.excr)) + 
     geom_point(size = 3) +
     geom_line(size = 1) +
+    geom_errorbar(aes(ymin = Pop.N.excr - Pop.N.excr.sd, ymax = Pop.N.excr + Pop.N.excr.sd),
+                  width = 0.2, color = "black") +
     labs(x = '',
          y = expression(atop(Log[10]~Population, 
-                             paste(N~excretion~(μg~P/kg/ha))))) +
-    theme_classic(base_size = 26) +
+                             paste(N~excretion~(μg~N/m[2]/h))))) +
+    theme_classic(base_size = 26) #+
     # scale_x_discrete(labels = c("Summer", "Fall")) +
     # scale_colour_manual(values = c("goldenrod2", "#D16103")) +
     # scale_fill_manual(values = c("goldenrod2", "#D16103")) +
-    scale_color_brewer(palette = "Set1",
-                       name = 'Species',
-                       labels = Species.pop) +
-    theme(axis.text = element_text(face = 'bold'),
-          axis.line = element_line(size = 1),
-          panel.grid = element_blank(),
-          legend.title = element_text(face = 'bold'),
-          legend.margin = margin(.15, .15, .15, .15, 'cm'),
-          legend.key.height = unit(2, 'lines'),
-          legend.key.width = unit(3, 'lines'),
-          legend.position = 'right')
+    # scale_color_brewer(palette = "Set1",
+    #                    name = 'Species',
+    #                    labels = Species.pop) +
+    # theme(axis.text = element_text(face = 'bold'),
+    #       axis.line = element_line(size = 1),
+    #       panel.grid = element_blank(),
+    #       legend.title = element_text(face = 'bold'),
+    #       legend.margin = margin(.15, .15, .15, .15, 'cm'),
+    #       legend.key.height = unit(2, 'lines'),
+    #       legend.key.width = unit(3, 'lines'),
+    #       legend.position = 'right')
   PopNexcr.yr.p 
   
   # Pop P excretion vs year
-  PopPexcr.yr.p <- ggplot(excr.yr,
-                          aes(x = Year, y = Log10.Pop.P.excr.sp,
-                              color = Species.code)) + 
+  PopPexcr.yr.p <- ggplot(excr_yr_WB %>% filter(Source == 'Fish SRP'),
+                          aes(x = Year, y = Pop.P.excr)) + 
     geom_point(size = 3) +
     geom_line(size = 1) +
+    # geom_point(excr_yr_WB %>% filter(Source == 'Dreissenid SRP'),
+    #            aes(x = Year, y = Pop.P.excr), size = 3) +
+    # geom_line(excr_yr_WB %>%  filter(Source == 'Dreissenid SRP'),
+    #           aes(x = Year, y = Pop.P.excr), size = 1) +
+    geom_errorbar(aes(ymin = Pop.P.excr - Pop.P.excr.sd, ymax = Pop.P.excr + Pop.P.excr.sd),
+                  width = 0.2, color = "black") +
     labs(x = '',
          y = expression(atop(Log[10]~Population, 
-                             paste(P~excretion~(μg~P/kg/ha))))) +
-    theme_classic(base_size = 26) +
+                             paste(P~excretion~(μg~P/m^2/h))))) +
+    theme_classic(base_size = 26) #+
     # scale_x_discrete(labels = c("Summer", "Fall")) +
     # scale_colour_manual(values = c("goldenrod2", "#D16103")) +
     # scale_fill_manual(values = c("goldenrod2", "#D16103")) +
-    theme(axis.text = element_text(face = 'bold'),
-          axis.line = element_line(size = 1),
-          panel.grid = element_blank(),
-          legend.title = element_text(face = 'bold'),
-          legend.margin = margin(.15, .15, .15, .15, 'cm'),
-          legend.key.height = unit(2, 'lines'),
-          legend.key.width = unit(3, 'lines'),
-          legend.position = 'right')
+    # theme(axis.text = element_text(face = 'bold'),
+    #       axis.line = element_line(size = 1),
+    #       panel.grid = element_blank(),
+    #       legend.title = element_text(face = 'bold'),
+    #       legend.margin = margin(.15, .15, .15, .15, 'cm'),
+    #       legend.key.height = unit(2, 'lines'),
+    #       legend.key.width = unit(3, 'lines'),
+    #       legend.position = 'right')
   PopPexcr.yr.p 
   
-  ggplot(er %>% filter(`N excretion rate (ug/h/ind)` < 0), aes(`Ind. wet.dry mass (g)`, `N excretion rate (ug/h/ind)`)) +
-    geom_point()
+  PopPexcr.yr.p <- ggplot(excr_yr_WB %>% filter(Source == 'Dreissenid SRP'),
+                          aes(x = Year, y = Pop.P.excr)) + 
+    geom_point(size = 3) +
+    geom_line(size = 1) +
+    # geom_point(excr_yr_WB %>% filter(Source == 'Dreissenid SRP'),
+    #            aes(x = Year, y = Pop.P.excr), size = 3) +
+    # geom_line(excr_yr_WB %>%  filter(Source == 'Dreissenid SRP'),
+    #           aes(x = Year, y = Pop.P.excr), size = 1) +
+    geom_errorbar(aes(ymin = Pop.P.excr - Pop.P.excr.sd, ymax = Pop.P.excr + Pop.P.excr.sd),
+                  width = 0.2, color = "black") +
+    theme_classic(base_size = 26)
+  PopPexcr.yr.p
   
