@@ -769,7 +769,7 @@
             nrow = 3,
             labels = c("(a)", "(b)", "(c)"),
             font.label = list(size = 10), label.x = 0.2, label.y = 1,
-            common.legend = F, align = 'hv')
+            common.legend = T, legend = 'right', align = 'hv')
   ggsave('tables_figures/final-tables_figures/FigS3.tiff', 
          width = 11, height = 17, units = 'cm', dpi = 600,
          compression = 'lzw', bg = 'white')  
