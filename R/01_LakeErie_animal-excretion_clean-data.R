@@ -160,6 +160,7 @@
     mutate(
       biomass.g.m2 = biomass.g.m2 * 0.0265,
       biomass.g.m2.sd = biomass.g.m2.sd * 0.0265,
+      biomass.g.m2.se = biomass.g.m2.se * 0.0265,
       Pop.N.excr = masscorr.N.excr * biomass.g.m2,
       Pop.N.excr.sd = Pop.N.excr * sqrt((masscorr.N.excr.sd / masscorr.N.excr)^2 +
                                           (biomass.g.m2.sd / biomass.g.m2)^2),
@@ -182,7 +183,7 @@
     describe_distribution()
     
   # .....Western basin only ----
-  # define function
+  # Define function
   get_excr_value <- function(source, variable, stat = "Mean") {
     group_value <- if (source == "Dreissenid") "Taxo.rank=Dreissenid" else "Taxo.rank=Fish"
     value <- excr.taxo.ss %>%
@@ -192,26 +193,37 @@
     return(value)
   }
   
-  # make dataset
+  # calculate yearly population excretion rates
   excr.yr.WB <- biomass_WB %>%
     mutate(
+      n.b.total = case_when(
+        Source == "Fish" & !is.na(n.b.spring) & !is.na(n.b.autumn) ~ n.b.spring + n.b.autumn,
+        Source == "Fish" & is.na(n.b.spring) & !is.na(n.b.autumn) ~ n.b.autumn,
+        TRUE ~ n.b.total
+      ),
       biomass.g.m2 = if_else(
         Source == 'Fish',
-        biomass.kg.ha * 10 ^ 3 / 10 ^ 4 * 0.25,
+        biomass.kg.ha * 1000 / 10000 * 0.25,
         biomass.g.m2 * 0.0265
       ),
       biomass.g.m2.sd = if_else(
         Source == 'Fish',
-        biomass.kg.ha.sd * 10 ^ 3 / 10 ^ 4 * 0.25,
+        biomass.kg.ha.sd * 1000 / 10000 * 0.25,
         biomass.g.m2.sd * 0.0265
       ),
-      # Lookup excretion means and SDs safely using map_dbl
+      biomass.g.m2.se = if_else(
+        !is.na(n.b.total) & n.b.total > 0,
+        biomass.g.m2.sd / sqrt(n.b.total),
+        NA_real_
+      ),
+      
+      # Lookup excretion means and SDs safely
       masscorr.N.excr = map_dbl(Source, ~ get_excr_value(.x, "masscorr.N.excr", "Mean")),
       masscorr.N.excr.sd = map_dbl(Source, ~ get_excr_value(.x, "masscorr.N.excr", "SD")),
       masscorr.P.excr = map_dbl(Source, ~ get_excr_value(.x, "masscorr.P.excr", "Mean")),
       masscorr.P.excr.sd = map_dbl(Source, ~ get_excr_value(.x, "masscorr.P.excr", "SD")),
       
-      # Scaled population-level rates + uncertainty propagation
+      # Population-level scaled excretion with uncertainty propagation
       Pop.N.excr = masscorr.N.excr * biomass.g.m2,
       Pop.N.excr.sd = Pop.N.excr * sqrt(
         (masscorr.N.excr.sd / masscorr.N.excr)^2 +
@@ -223,6 +235,7 @@
           (biomass.g.m2.sd / biomass.g.m2)^2
       )
     )
+  
   
   # make volumetric excretion dataset ----
   # convert Lake Erie water retention time from yr to h (x 24h x 325d = 8760h)
@@ -241,10 +254,8 @@
   excr.load <- excr.f.yr %>%  filter(Year == 2019) %>%
     reframe(
       Agg.biomass.g.m2 = sum(biomass.g.m2, na.rm = TRUE),
-      Agg.N.excr = sum(Pop.N.excr, na.rm = TRUE),
-      Agg.biomass.g.m2.sd = sqrt(mean(biomass.g.m2^2, na.rm = TRUE)),
-      Agg.biomass.g.m2.se = sd(biomass.g.m2, na.rm = TRUE) / sqrt(n()),
       # Propagate measurement uncertainty across years
+      Agg.N.excr = sum(Pop.N.excr, na.rm = TRUE),
       Agg.N.excr.sd = sqrt(mean(Pop.N.excr.sd^2, na.rm = TRUE)),
       Agg.N.excr.se = sd(Pop.N.excr, na.rm = TRUE) / sqrt(n()),
       Agg.P.excr = sum(Pop.P.excr, na.rm = TRUE),
