@@ -31,7 +31,7 @@
       Predictors = "",
       n = md("**n**"),
       df = md("**df**"),
-      statistic = md("**statistic**"),
+      statistic = md("**H**"),
       p = md("***p***")
     ) %>%
     cols_align(
@@ -61,11 +61,11 @@
   combined_dunn_sp %>%
     gt(groupname_col = "model") %>%
     cols_label(
-      group1 = md("**group1**"),
-      group2 = md("**group2**"),
+      group1 = md("**group 1**"),
+      group2 = md("**group 2**"),
       n1 = md("**n1**"),
       n2 = md("**n2**"),
-      statistic = md("**statistic**"),
+      statistic = md("**Z**"),
       p.adj = md("***p.adj***")
     ) %>%
     cols_align(
@@ -98,7 +98,7 @@
       Predictors = "",
       n = md("**n**"),
       df = md("**df**"),
-      statistic = md("**statistic**"),
+      statistic = md("**H**"),
       p = md("***p***")
     ) %>%
     cols_align(
@@ -131,7 +131,7 @@
       Predictors = "",
       n = md("**n**"),
       df = md("**df**"),
-      statistic = md("**statistic**"),
+      statistic = md("**H**"),
       p = md("***p***")
     ) %>%
     cols_align(
@@ -265,11 +265,11 @@
   # excr.sp.sub <- excr %>% filter(!Species.code %in% c('NP', 'WE'))
   
   plot_sp <- function(y) {
-    ggplot(excr, aes(x = Species.code, y = y,
-                            color = Season, fill = Season)) +
-      geom_jitter(size = point.size, alpha = fill.alpha, 
-                  position = position_jitterdodge(jitter.width = 0.3),
-                  aes(color = Season)) +
+    ggplot(excr, aes(x = Species.code, y = y)) +#,
+                            #color = Season, fill = Season)) +
+      geom_jitter(size = point.size, alpha = fill.alpha) +#, 
+                  #position = position_jitterdodge(jitter.width = 0.3)),
+                  #aes(color = Season)) +
       geom_boxplot(width = .8, size = line.width, outlier.shape = NA, alpha = .2) +
       labs(x = 'Species',
            y = expression(atop("Mass-specific", 
@@ -277,13 +277,13 @@
       scale_x_discrete(labels = Species.labels) +
       scale_y_continuous(trans = 'log10') +
       theme_classic(base_size = 10) +
-      theme(axis.text.x = element_text(angle = 45, hjust = 1.1)) +
-      scale_colour_manual(name = 'Sampling',
-                          labels = Sampling.labels,
-                          values = Sampling.colors) +
-      scale_fill_manual(name = 'Sampling',
-                        labels = Sampling.labels,
-                        values = Sampling.colors)
+      theme(axis.text.x = element_text(angle = 45, hjust = 1.1)) #+
+      # scale_colour_manual(name = 'Sampling',
+      #                     labels = Sampling.labels,
+      #                     values = Sampling.colors) +
+      # scale_fill_manual(name = 'Sampling',
+      #                   labels = Sampling.labels,
+      #                   values = Sampling.colors)
   }
   
   plot_season <- function(df, y) {
@@ -334,7 +334,7 @@
                           discrete = T)
   }
   
-  # Figure 1 ----
+  # Figure 2 ----
   Nexcr.sp.p <- plot_sp(excr$masscorr.N.excr) +
     xlab('') +
     geom_hline(data = excr.ss %>% filter(Variable == 'masscorr.N.excr'), 
@@ -394,13 +394,13 @@
   # combine plots ----
   ggarrange(Nexcr.sp.p, Pexcr.sp.p, NPexcr.sp.p, nrow = 3, 
             labels = c("(a)", "(b)", "(c)"),
-            font.label = list(size = 10), label.x = 0.12, label.y = 1.02,
+            font.label = list(size = 10), label.x = 0.11, label.y = 1.02,
             legend = 'right', common.legend = T, align = 'v')
-  ggsave('tables_figures/final-tables_figures/Fig1.tiff', 
+  ggsave('tables_figures/final-tables_figures/Fig2.tiff', 
          width = 17, height = 20, units = 'cm', dpi = 600,
          compression = 'lzw', bg = 'white')  
   
-  # Figure 2 ----
+  # Figure 3 ----
   # N excretion
   NexcrSeas.p <- plot_season(excr, excr$masscorr.N.excr) +
     labs(x = '',
@@ -448,12 +448,12 @@
             labels = c("(a)", "(b)", "(c)"),
             font.label = list(size = 10), label.x = 0.22, label.y = 1,
             common.legend = T, legend = 'none', align = 'hv')
-  ggsave('tables_figures/final-tables_figures/Fig2.tiff', 
+  ggsave('tables_figures/final-tables_figures/Fig3.tiff', 
          width = 10, height = 17, units = 'cm', dpi = 600,
          compression = 'lzw', bg = 'white')  
   
   
-  # Figure 3 ----
+  # Figure 4 ----
   # N excretion vs d15N
   Nexcr15N.p <- plot_si(excr.SI$d15N, excr.SI$masscorr.N.excr) +
     labs(x = '',
@@ -509,11 +509,11 @@
             font.label = list(size = 10), 
             label.x = 0.28, label.y = 1.02, common.legend = T,
             legend = 'right', align = 'hv')
-  ggsave('tables_figures/final-tables_figures/Fig3.tiff', 
+  ggsave('tables_figures/final-tables_figures/Fig4.tiff', 
          width = 17, height = 17, 
          units = 'cm', dpi = 600, compression = 'lzw', bg = 'white')
   
-  # Figure 4 ----
+  # Figure 5 ----
   # Fish
   PopNexcr.f.yr.p <- plot_pop(excr.f.yr, excr.f.yr$Pop.N.excr, excr.f.yr$Pop.N.excr.sd)  +
     labs(title = "      Fish",
@@ -560,25 +560,25 @@
   annotate_figure(fig4, 
                   bottom = text_grob('Year', size = 10, y = 1))
   
-  ggsave('tables_figures/final-tables_figures/Fig4.tiff', 
+  ggsave('tables_figures/final-tables_figures/Fig5.tiff', 
          width = 17, height = 12, units = 'cm', dpi = 600,
         compression = 'lzw', bg = 'white')  
   
-  # Figure 5 ----
+  # Figure 6 ----
   # Lakewide N load
   Nload.p <- ggplot(excr.load %>% filter(!is.na(Nload)), aes(x = Source, y = Nload, fill = Source)) +
     geom_bar(stat = "identity") +
     geom_errorbar(aes(ymin = pmax(Nload - Nload.se, 1), ymax = Nload + Nload.se),
-                  width = 0.2, color = "black") +
+                  width = 0.2, color = "grey50") +
     labs(title = "(a) Lake-wide (2019)",
          x = "",
          y = expression(N ~ load ~ (tonnes~yr^-1))) +
     scale_y_log10(breaks = trans_breaks("log10", function(x) 10^x),
                   labels = trans_format("log10", math_format(10^.x))) +
     coord_flip(ylim = c(1, 1*10^6)) +
-    scale_fill_manual(values = c('grey80', 'grey80',
+    scale_fill_manual(values = c('grey10', 'grey10',
                                  'grey40', 'grey40',  
-                                 'grey10', 'grey10')) +
+                                 'grey80', 'grey80')) +
     scale_x_discrete(labels = c('Dreissenid NH4+', 'Fish NH4+',
                                 'Tributary TKN')) +
     theme_bw(base_size = 10) +
@@ -590,7 +590,7 @@
   Pload.p <- ggplot(excr.load, aes(x = Source, y = Pload, fill = Source)) +
     geom_bar(stat = "identity") +
     geom_errorbar(aes(ymin = pmax(Pload - Pload.se, 1), ymax = Pload + Pload.se),
-                  width = 0.2, color = "black") +
+                  width = 0.2, color = "grey50") +
     labs(title = "(b) Lake-wide (2019)",
          x = "",
          y = expression(P ~ load ~ (tonnes~yr^-1))) +
@@ -600,21 +600,42 @@
       limits = c(1, 1e6)
     ) +
     coord_flip() +
-    scale_fill_manual(values = c('grey80', 'grey80',
+    scale_fill_manual(values = c('grey10', 'grey10',
                                  'grey40', 'grey40',  
-                                 'grey10', 'grey10')) +
+                                 'grey80', 'grey80')) +
     scale_x_discrete(labels = Psource.labels) +
     theme_bw(base_size = 10) +
     theme(legend.position = 'none',
           plot.title = element_text(face = "bold")) 
   Pload.p
   
+  # WB N load 2011-2020 average
+  NloadWB.p <- ggplot(excr.WB.load %>% filter(!is.na(Nload)), aes(x = Source, y = Nload, fill = Source)) +
+    geom_bar(stat = "identity") +
+    geom_errorbar(aes(ymin = pmax(Nload - Nload.se, 1), ymax = Nload + Nload.se),
+                  width = 0.2, color = "grey50") +
+    labs(title = "(c) Western basin mean (2011-2020)",
+         x = "",
+         y = expression(N ~ load ~ (tonnes~yr^-1))) +
+    scale_y_log10(breaks = trans_breaks("log10", function(x) 10^x),
+                  labels = trans_format("log10", math_format(10^.x))) +
+    coord_flip(ylim = c(1, 1*10^6)) +
+    scale_fill_manual(values = c('grey10', 'grey10',
+                                 'grey40', 'grey40',  
+                                 'grey80', 'grey80')) +
+    scale_x_discrete(labels = c('Dreissenid NH4+', 'Fish NH4+',
+                                'Tributary TKN')) +
+    theme_bw(base_size = 10) +
+    theme(legend.position = 'none',
+          plot.title = element_text(face = "bold")) 
+  NloadWB.p
+  
   # WB P load 2011-2020 average
   PloadWB.p <- ggplot(excr.WB.load, aes(x = Source, y = Pload, fill = Source)) +
     geom_bar(stat = "identity") +
     geom_errorbar(aes(ymin = pmax(Pload - Pload.se, 1), ymax = Pload + Pload.se),
-                  width = 0.2, color = "black") +
-    labs(title = "(c) Western basin mean (2011-2020)",
+                  width = 0.2, color = "grey50") +
+    labs(title = "(d) Western basin mean (2011-2020)",
          x = "",
          y = expression(P ~ load ~ (tonnes~yr^-1))) +
     scale_y_log10(
@@ -623,9 +644,9 @@
       limits = c(1, 1e6)
     ) +
     coord_flip() +
-    scale_fill_manual(values = c('grey80', 'grey80',
+    scale_fill_manual(values = c('grey10', 'grey10',
                                  'grey40', 'grey40',  
-                                   'grey10', 'grey10')) +
+                                 'grey80', 'grey80')) +
     scale_x_discrete(labels = Psource.labels) +
     theme_bw(base_size = 10) +
     theme(legend.position = 'none',
@@ -633,12 +654,14 @@
   PloadWB.p
   
   ggarrange(Nload.p, Pload.p,
-            NA, PloadWB.p,
+            NloadWB.p, PloadWB.p,
             nrow = 2, ncol = 2,
             font.label = list(size = 10), label.x = 0.25, label.y = 1,
             legend = 'none', align = 'v')
   
-  ggsave('tables_figures/final-tables_figures/Fig5.tiff', 
+  # combine plots ----
+  
+  ggsave('tables_figures/final-tables_figures/Fig6.tiff', 
          width = 17, height = 12, units = 'cm', dpi = 600, 
         scaling = 0.8, compression = 'lzw', bg = 'white')   
   
