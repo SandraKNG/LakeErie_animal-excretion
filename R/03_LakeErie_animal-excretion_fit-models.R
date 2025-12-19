@@ -135,7 +135,7 @@
   # ..Figure 2 - Temperature ----
   lmN.temp <- lmer(log10(masscorr.N.excr) ~ Temp + (1|Species.code), data = excr)
   check_model(lmN.temp)
-  AIC(lmN.temp, lmN.temp2)
+  #AIC(lmN.temp, lmN.temp2)
   anova(lmN.temp)
   summary(lmN.temp)
   

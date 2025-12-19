@@ -247,6 +247,10 @@
   Area.WB <- 3284 * 10^6
   lake.vol.L <- 480 * 10^12
   
+  # calculate amount of P stored in dreissenid dry tissue
+  # using biomass in Western Basin 6.19 g/m2 + 1.28%P in tissue
+  d.P.bms.W <- 6.19 * 1.28/100 * Area.WB
+  
   # combine load estimates ----
   # convert loads in ug/h to tonnes/yr by:
   # converting yr to h (x 24h x 325d = 8760h) and multiplying loads by it
@@ -317,11 +321,16 @@
       Pload.se = Agg.P.excr.se * 8760 * Area.WB / 1e12
     )
   
+  # Source total TP load (US + CAN) = Total phosphorus loading, Basin total column
+  # from file "total-p-loading-lake-erie-2008-2020.csv"
+  # and total TP + TP*0.33, SRP method (Maccoux et al. 2016)
   # ambient load based on main tributaries calc from US + data from Can
-  # TP = 11386 (US) + 1205 (CAN), SRP = 3030 (US) + 351 (CAN)
-  # and lakewide TP + TP*33% SRP method (Maccoux et al. 2016)
-  ambient.load <- tibble(Pload = c(13544, 4470, 12591, 3381), 
-                         Nload = c(NA, NA, NA, 41900),
+  # tributary TP = 4948 (US) + 1205 (CAN), tributary SRP = 1049 (US) + 351 (CAN)
+  # Source tributary TP + SRP load (CAN) = Monitored Tributary row in 2019 from 
+  # file "Annual_TP_SRP_loads_by_source_PT_PRS par type de source.csv"
+  # Source tributary TP + SRP load (US) = ncwqr-data - HTLP
+  ambient.load <- tibble(Pload = c(13544, 4470, 6153, 1400), 
+                         Nload = c(NA, NA, NA, 19488),
                          Source = c('Total TP', 'Total SRP', 
                                     'Tributary TP', 'Tributary TKN or SRP'))
   
@@ -341,10 +350,14 @@
     ))
   
   # Western basin loads
-  # average TP 2011-2020 + TP*33% SRP method (Maccoux et al. 2016)
-  ambient.WB.load <- tibble(Pload = c(3440, 860, 3099, 713), 
+  # total TP = average TP 2011-2020 + TP*33% SRP method (Maccoux et al. 2016)
+  # from from file "annual-average-p-loading-lake-erie-2011-2020.csv"
+  # tributary TP = 2529 (US) + 440 (Can)
+  # tributary SRP = 595 + 125 (Can)
+  ambient.WB.load <- tibble(Pload = c(3440, 860, 2969, 720),
+                            Nload = c(NA, NA, NA, 10330),
                          Source = factor(c('Total TP', 'Total SRP',
-                                    'Tributary TP', 'Tributary SRP'))) 
+                                    'Tributary TP', 'Tributary TKN or SRP'))) 
   excr.WB.load <- excr.WB.load %>% 
     bind_rows(ambient.WB.load) %>% 
     mutate(Source = factor(
@@ -352,7 +365,7 @@
       levels = c(
         'Dreissenid',
         'Fish',
-        'Tributary SRP',
+        'Tributary TKN or SRP',
         'Tributary TP',
         'Total SRP',
         'Total TP'

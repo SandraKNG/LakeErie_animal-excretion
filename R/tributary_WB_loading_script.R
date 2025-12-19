@@ -13,7 +13,20 @@ library(gridExtra)
 library(viridis)
 
 # read in Heidelberg excel xlsx file with rivers in separate sheets 
-excel_file <- "data/HTLP_LakeErie_US_TP_SRP_TKN_2025-12-11_070205_noREADME.xlsx"
+excel_file <- "data/HTLP_WB_LakeErie_US_TP_SRP_TKN_2025-12-11_070823_noREADME.xlsx"
+
+# read in ECCC file
+can_WB_load <- read_csv('data/ECC_Erie_P_loading/Annual_TP_SRP_Tributary_Loads_PT_PRS_charges_affluent_calculation.csv')
+  
+# pivot table
+can_l <- can_WB_load %>% 
+  pivot_wider(
+    names_from = parameter,
+    values_from = load
+  ) %>% 
+  rename(TP_mt = `TP/PT`,
+         SRP_mt = `SRP/PRS`)
+
 
 # get the list of sheet names
 sheet_names <- excel_sheets(excel_file)
@@ -109,12 +122,43 @@ tributary_daily_loads_mt <- data.frame(
   TKN_mt = mean_tributary_df$discharge_lpd * mean_tributary_df$TKN_mgl / convert_fact_mg_mt
 )
 
-write.csv(tributary_daily_loads_mt, "output/tributary_daily_loads_mt.csv", row.names = F)
+tributary_daily_loads_mt <- tributary_daily_loads_mt %>%
+  mutate(
+    water_year = year(date) + if_else(month(date) >= 10, 1, 0)
+  )
+
+write.csv(tributary_daily_loads_mt, "output/tributary_WB_us_daily_loads_mt.csv", row.names = F)
 
 # get yearly loads
 tributary_yearly_loads <- tributary_daily_loads_mt %>% 
+  group_by(water_year) %>% 
   reframe(TP_mt = sum(TP_mt, na.rm = T),
           SRP_mt = sum(SRP_mt, na.rm = T),
           TKN_mt = sum(TKN_mt, na.rm = T))
 
-write_csv(tributary_yearly_loads, "output/tributary_yearly_loads_mt.csv")
+write_csv(tributary_yearly_loads, "output/tributary_WB_us_yearly_loads_mt.csv")
+
+# get average from 2011 to 2020
+tributary_mean_yearly_loads <- tributary_yearly_loads %>% 
+  reframe(TP_mt = mean(TP_mt, na.rm = T),
+          SRP_mt = mean(SRP_mt, na.rm = T),
+          TKN_mt = mean(TKN_mt, na.rm = T))
+
+write_csv(tributary_mean_yearly_loads, "output/tributary_WB_us_mean_2011_2020_loads_mt.csv")
+
+# calculate mean loads from Canada
+can_yearly_l <- can_l %>% 
+  filter(stream %in% c('Sydenham', 'Thames', 'Canard', 'Turkey')) %>% 
+  group_by(water_year) %>% 
+  reframe(
+    TP_mt  = sum(TP_mt,  na.rm = TRUE),
+    SRP_mt = sum(SRP_mt, na.rm = TRUE)
+  ) 
+
+# get average from 2011 to 2020
+can_mean_yearly_l <- can_yearly_l %>% 
+  reframe(TP_mt = mean(TP_mt, na.rm = T),
+          SRP_mt = mean(SRP_mt, na.rm = T))
+
+write_csv(can_mean_yearly_l, "output/tributary_WB_can_mean_2011_2020_loads_mt.csv")
+  
