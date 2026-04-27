@@ -616,7 +616,11 @@
                   width = 0.2, color = "grey50") +
     labs(title = "(c) Western basin mean (2011-2020)",
          x = "",
+<<<<<<< HEAD
          y = expression(N ~ load ~ (Mg~yr^-1))) +
+=======
+         y = expression(N ~ load ~ (tonnes~yr^-1))) +
+>>>>>>> 5b03cbe5a5a16efb29b134c14b1f557a084623dd
     scale_y_log10(breaks = trans_breaks("log10", function(x) 10^x),
                   labels = trans_format("log10", math_format(10^.x))) +
     coord_flip(ylim = c(1, 1*10^6)) +
