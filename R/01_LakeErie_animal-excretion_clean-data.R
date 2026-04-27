@@ -185,11 +185,18 @@
   # .....Western basin only ----
   # Define function
   get_excr_value <- function(source, variable, stat = "Mean") {
-    group_value <- if (source == "Dreissenid") "Taxo.rank=Dreissenid" else "Taxo.rank=Fish"
+    # Determine the taxonomic group
+    group_value <- if (source == "Dreissenid") "Dreissenid" else "Fish"
+    
+    # Filter and safely pull value
     value <- excr.taxo.ss %>%
-      filter(.group == group_value, Variable == variable) %>%
-      slice(1) %>%
+      filter(Taxo.rank == group_value, Variable == variable) %>%
+      slice_head(n = 1) %>%  # take first row if multiple exist
       pull({{ stat }})
+    
+    # Return NA if no match found
+    if (length(value) == 0) return(NA_real_)
+    
     return(value)
   }
   
@@ -422,5 +429,7 @@
   
   CTL.av <- er %>% filter(`Species code` %in% c("CTL1","CTL2","CTL3",
                                                 "CTL4","CTL5","CTL6")) %>% 
-    select(c(`SRP (ug/L)`,  `NH4 (ug/L)`)) %>% 
+    select(c(`SRP (ug/L)`, `NH4 (ug/L)`, `TDP (ug/L)...22`, `TDN (ug/L)...25`)) %>% 
     describe_distribution()
+  
+  
