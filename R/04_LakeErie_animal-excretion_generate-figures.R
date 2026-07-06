@@ -262,14 +262,9 @@
   Psource.labels <- c('Dreissenid SRP','Fish SRP','Tributary SRP',
                       'Tributary TP','Total SRP','Total TP')
   
-  # excr.sp.sub <- excr %>% filter(!Species.code %in% c('NP', 'WE'))
-  
   plot_sp <- function(y) {
-    ggplot(excr, aes(x = Species.code, y = y)) +#,
-                            #color = Season, fill = Season)) +
-      geom_jitter(size = point.size, alpha = fill.alpha) +#, 
-                  #position = position_jitterdodge(jitter.width = 0.3)),
-                  #aes(color = Season)) +
+    ggplot(excr, aes(x = Species.code, y = y)) +
+      geom_jitter(size = point.size, alpha = fill.alpha) +
       geom_boxplot(width = .8, size = line.width, outlier.shape = NA, alpha = .2) +
       labs(x = 'Species',
            y = expression(atop("Mass-specific", 
@@ -277,13 +272,7 @@
       scale_x_discrete(labels = Species.labels) +
       scale_y_continuous(trans = 'log10') +
       theme_classic(base_size = 10) +
-      theme(axis.text.x = element_text(angle = 45, hjust = 1.1)) #+
-      # scale_colour_manual(name = 'Sampling',
-      #                     labels = Sampling.labels,
-      #                     values = Sampling.colors) +
-      # scale_fill_manual(name = 'Sampling',
-      #                   labels = Sampling.labels,
-      #                   values = Sampling.colors)
+      theme(axis.text.x = element_text(angle = 45, hjust = 1.1)) 
   }
   
   plot_season <- function(df, y) {
@@ -458,32 +447,28 @@
   Nexcr15N.p <- plot_si(excr.SI$d15N, excr.SI$masscorr.N.excr) +
     labs(x = '',
          y = expression(atop("Mass-specific", 
-                             paste(N~excretion~(μg~N~g^-1~h^-1))))) +
-    theme(axis.text.x = element_blank())
+                             paste(N~excretion~(μg~N~g^-1~h^-1))))) 
   Nexcr15N.p
   
   # N excretion vs d13C
   Nexcr13C.p <- plot_si(excr.SI$d13C, excr.SI$masscorr.N.excr) +
     labs(x = '',
          y = '') +
-    theme(axis.text.x = element_blank(),
-          axis.text.y = element_blank())
+    theme(axis.text.y = element_blank())
   Nexcr13C.p
   
   # P excretion vs d15N
   Pexcr15N.p <- plot_si(excr.SI$d15N, excr.SI$masscorr.P.excr) +
     labs(x = '',
          y = expression(atop("Mass-specific", 
-                             paste(P~excretion~(μg~P~g^-1~h^-1))))) +
-    theme(axis.text.x = element_blank())
+                             paste(P~excretion~(μg~P~g^-1~h^-1))))) 
   Pexcr15N.p
   
   # P excretion vs d13C
   Pexcr13C.p <- plot_si(excr.SI$d13C, excr.SI$masscorr.P.excr) +
     labs(x = '',
          y = '') +
-    theme(axis.text.x = element_blank(),
-          axis.text.y = element_blank())
+    theme(axis.text.y = element_blank())
   Pexcr13C.p
   
   # N:P excretion vs d15N
@@ -671,6 +656,73 @@
   
   # Figure S1 ----
   # N excretion
+  NexcrTemp.p <- ggplot(lmN.temp.pred, aes(x = Temp, y = fit,
+                                           color = Season)) +
+    geom_point(data = excr, aes(x = Temp, y = masscorr.N.excr),
+               size = point.size, alpha = fill.alpha) +
+    geom_ribbon(aes(ymin = lower, ymax = upper), colour = NA, alpha = .2) +
+    geom_line(linewidth = line.width, colour = 'black') +
+    labs(x = '',
+         y = expression(atop("Mass-specific", 
+                             paste(N~excretion~(μg~N~g^-1~h^-1))))) +
+    scale_x_continuous(n.breaks = 8) +
+    scale_y_continuous(trans = 'log10') +
+    theme_classic(base_size = 10) +
+    scale_colour_manual(name = 'Sampling',
+                        labels = Sampling.labels,
+                        values = Sampling.colors)
+  NexcrTemp.p
+  
+  # P excretion
+  PexcrTemp.p <- ggplot(excr, aes(x = Temp, y = masscorr.P.excr,
+                                  color = Season)) +
+    geom_point(size = point.size, alpha = fill.alpha) +
+    geom_hline(data = excr.ss %>% filter(Variable == 'masscorr.P.excr'),
+               aes(yintercept = Mean), linetype = 'dashed',
+               linewidth = line.width) +
+    labs(x = '',
+         y = expression(atop("Mass-specific", 
+                             paste(P~excretion~(μg~P~g^-1~h^-1))))) +
+    scale_x_continuous(n.breaks = 8) +
+    scale_y_continuous(trans = 'log10') +
+    theme_classic(base_size = 10) +
+    scale_colour_manual(name = 'Sampling',
+                        labels = Sampling.labels,
+                        values = Sampling.colors)
+  PexcrTemp.p
+  
+  # N:P excretion
+  NPexcrTemp.p <- ggplot(excr, aes(x = Temp, y = masscorr.NP.excr,
+                                   color = Season)) +
+    geom_point(size = point.size, alpha = fill.alpha) +
+    geom_hline(data = excr.ss %>% filter(Variable == 'masscorr.NP.excr'),
+               aes(yintercept = Mean), linetype = 'dashed',
+               linewidth = line.width) +
+    labs(x = 'Temperature (°C)',
+         y = expression(atop("Mass-specific", 
+                             paste(N:P~excretion~(molar))))) +
+    scale_x_continuous(n.breaks = 8) +
+    scale_y_continuous(trans = 'log10') +
+    theme_classic(base_size = 10) + 
+    scale_colour_manual(name = 'Sampling',
+                        labels = Sampling.labels,
+                        values = Sampling.colors)
+  NPexcrTemp.p
+  
+  # combine plots ----
+  ggarrange(NexcrTemp.p, 
+            PexcrTemp.p,
+            NPexcrTemp.p,
+            nrow = 3,
+            labels = c("(a)", "(b)", "(c)"),
+            font.label = list(size = 10), label.x = 0.25, label.y = 1,
+            common.legend = T, legend = 'right', align = 'hv')
+  ggsave('tables_figures/final-tables_figures/FigS3.tiff', 
+         width = 11, height = 17, units = 'cm', dpi = 600,
+         compression = 'lzw', bg = 'white')  
+  
+  # Figure S2 ----
+  # N excretion
   NexcrSeas.sub.p <- plot_season(excr.seas.sub, excr.seas.sub$masscorr.N.excr) +
     labs(x = '',
          y = expression(atop("Mass-specific", 
@@ -706,7 +758,7 @@
          width = 10, height = 17, units = 'cm', dpi = 600,
          compression = 'lzw', bg = 'white')  
   
-  # Figure S2 ----
+  # Figure S3 ----
   # N excretion vs tissue N
   NexcrbN.p <- plot_si(excr.SI$BodyN, excr.SI$masscorr.N.excr) +
     labs(x = 'Tissue N (%)',
@@ -732,74 +784,7 @@
          width = 20, height = 8, units = 'cm', dpi = 600,
          compression = 'lzw', bg = 'white')  
   
-  # Figure S3 ----
-  # N excretion
-  NexcrTemp.p <- ggplot(lmN.temp.pred, aes(x = Temp, y = fit,
-                                  color = Season)) +
-    geom_point(data = excr, aes(x = Temp, y = masscorr.N.excr),
-               size = point.size, alpha = fill.alpha) +
-    geom_ribbon(aes(ymin = lower, ymax = upper), colour = NA, alpha = .2) +
-    geom_line(linewidth = line.width, colour = 'black') +
-    labs(x = '',
-         y = expression(atop("Mass-specific", 
-                             paste(N~excretion~(μg~N~g^-1~h^-1))))) +
-    scale_x_continuous(n.breaks = 8) +
-    scale_y_continuous(trans = 'log10') +
-    theme_classic(base_size = 10) +
-    theme(axis.text.x = element_blank()) + 
-    scale_colour_manual(name = 'Sampling',
-                        labels = Sampling.labels,
-                        values = Sampling.colors)
-  NexcrTemp.p
   
-  # P excretion
-  PexcrTemp.p <- ggplot(excr, aes(x = Temp, y = masscorr.P.excr,
-                                  color = Season)) +
-    geom_point(size = point.size, alpha = fill.alpha) +
-    geom_hline(data = excr.ss %>% filter(Variable == 'masscorr.P.excr'),
-               aes(yintercept = Mean), linetype = 'dashed',
-               linewidth = line.width) +
-    labs(x = '',
-         y = expression(atop("Mass-specific", 
-                             paste(P~excretion~(μg~P~g^-1~h^-1))))) +
-    scale_x_continuous(n.breaks = 8) +
-    scale_y_continuous(trans = 'log10') +
-    theme_classic(base_size = 10) +
-    theme(axis.text.x = element_blank()) + 
-    scale_colour_manual(name = 'Sampling',
-                        labels = Sampling.labels,
-                        values = Sampling.colors)
-  PexcrTemp.p
-  
-  # N:P excretion
-  NPexcrTemp.p <- ggplot(excr, aes(x = Temp, y = masscorr.NP.excr,
-                                   color = Season)) +
-    geom_point(size = point.size, alpha = fill.alpha) +
-    geom_hline(data = excr.ss %>% filter(Variable == 'masscorr.NP.excr'),
-               aes(yintercept = Mean), linetype = 'dashed',
-               linewidth = line.width) +
-    labs(x = 'Temperature (°C)',
-         y = expression(atop("Mass-specific", 
-                             paste(N:P~excretion~(molar))))) +
-    scale_x_continuous(n.breaks = 8) +
-    scale_y_continuous(trans = 'log10') +
-    theme_classic(base_size = 10) + 
-    scale_colour_manual(name = 'Sampling',
-                        labels = Sampling.labels,
-                        values = Sampling.colors)
-  NPexcrTemp.p
-  
-  # combine plots ----
-  ggarrange(NexcrTemp.p, 
-            PexcrTemp.p,
-            NPexcrTemp.p,
-            nrow = 3,
-            labels = c("(a)", "(b)", "(c)"),
-            font.label = list(size = 10), label.x = 0.2, label.y = 1,
-            common.legend = T, legend = 'right', align = 'hv')
-  ggsave('tables_figures/final-tables_figures/FigS3.tiff', 
-         width = 11, height = 17, units = 'cm', dpi = 600,
-         compression = 'lzw', bg = 'white')  
   
   # export final tables ----
   write_csv(excr.ss, "output/excr_summary.csv")

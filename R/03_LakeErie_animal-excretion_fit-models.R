@@ -7,7 +7,6 @@
   library(lindia) # to look at model diagnostics
   library(performance) # to compare models
   library(car) # for Anova() function
-  #library(emmeans) # for posthoc
   library(lmerTest) # to add random effect to lm + F-test/p-value
   library(writexl)
   library(rstatix) # kruskal_test
@@ -132,21 +131,18 @@
   # data distribution
   hist(excr$masscorr.N.excr)
   
-  # ..Figure 2 - Temperature ----
+  # ..Figure S3 - Temperature ----
   lmN.temp <- lmer(log10(masscorr.N.excr) ~ Temp + (1|Species.code), data = excr)
   check_model(lmN.temp)
-  #AIC(lmN.temp, lmN.temp2)
   anova(lmN.temp)
   summary(lmN.temp)
   
   lmP.temp <- lmer(log10(masscorr.P.excr) ~ Temp + (1|Species.code), data = excr)
   check_model(lmP.temp)
-  AIC(lmP.temp, lmP.temp2)
   anova(lmP.temp)
   
   lmNP.temp <- lmer(log10(masscorr.NP.excr) ~ Temp + (1|Species.code), data = excr)
   check_model(lmNP.temp)
-  AIC(lmNP.temp, lmNP.temp2)
   anova(lmNP.temp)
   
   # Define your list of models
@@ -164,7 +160,7 @@
     return(anova_result)
   }))
   
-  # ..Figure 2 - stable isotopes ----
+  # ..Figure 4 - stable isotopes ----
   
   # make lm and lmer + model performance function
   perf_si <- function(x, y, data) {
