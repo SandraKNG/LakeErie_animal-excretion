@@ -1,5 +1,5 @@
 # LakeErie_animal-excretion
-Analysis of nutrient excretion rates by nine fish species and two dreissenid mussels in the Western Basin of Lake Erie. This code belongs to the paper **The missing piece to nutrient management in lakes: animal-mediated nutrient cycling** in press in *Ecosphere*.
+Analysis of nutrient excretion rates by nine fish species and two dreissenid mussels in the Western Basin of Lake Erie. This code belongs to the paper **The missing piece to nutrient management in lakes: animal-mediated nutrient cycling** published in *Ecosphere*.
 
 Authored by:
 
